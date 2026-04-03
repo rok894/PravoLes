@@ -1,3 +1,5 @@
+import ProductShowcase from "./components/ProductShowcase";
+
 const highlights = [
   {
     title: "Naravni materiali",
@@ -17,6 +19,27 @@ const steps = [
   "Dodaj predstavitvene fotografije izdelkov.",
   "Razširi vsebino z dodatnimi sekcijami ali podstranmi.",
   "Po potrebi poveži z API-jem ali CMS-om.",
+];
+
+const products = [
+  {
+    title: "Stol iz masivnega lesa",
+    description: "Ročno brušen stol s poudarkom na naravni teksturi in udobju.",
+    image: "/images/stol_1.jpg",
+    alt: "Lesen stol v svetlem prostoru",
+  },
+  {
+    title: "Komoda s predalniki",
+    description: "Čisti robovi, mehko zapiranje in topli toni masivnega lesa.",
+    image: "/images/predalčki_1.jpg",
+    alt: "Lesena komoda s predalniki",
+  },
+  {
+    title: "Šahovnica iz oreha",
+    description: "Kontrastna šahovnica, lakirana za dolgotrajno zaščito.",
+    image: "/images/šahovnica_1.jpg",
+    alt: "Lesena šahovnica na mizi",
+  },
 ];
 
 function App() {
@@ -81,6 +104,8 @@ function App() {
             </div>
           </div>
         </section>
+
+        <ProductShowcase products={products} />
 
         <section className="panel" id="naslednji-koraki">
           <div className="section-heading">
