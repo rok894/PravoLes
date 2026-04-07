@@ -1,0 +1,115 @@
+{
+  "nav": {
+    "vsebina": "Vsebina",
+    "products": "Izdelki",
+    "about": "O nas",
+    "gallery": "Galerija",
+    "contact": "Kontakt"
+  },
+  "hero": {
+    "eyebrow": "Dinamična struktura strani",
+    "title": "PravoLes",
+    "lead": "Preprosta in elegantna osnova za statično spletno stran, zgrajeno z Vite, React in TypeScript.",
+    "primaryCta": "Poglej strukturo",
+    "secondaryCta": "Kontakt"
+  },
+  "structure": {
+    "eyebrow": "Osnova projekta",
+    "title": "Kaj je trenutno vključeno"
+  },
+  "highlights": [
+    {
+      "title": "Naravni materiali",
+      "text": "Osredotočeni na les, teksturo in občutek topline v prostoru."
+    },
+    {
+      "title": "Ročno dodelan izgled",
+      "text": "Stran je pripravljena kot mirna, pregledna osnova za predstavitev izdelkov."
+    }
+  ],
+  "about": {
+    "eyebrow": "O nas",
+    "title": "Naša zgodba in vizija"
+  },
+  "aboutPoints": [
+    {
+      "title": "Pravilen pristop",
+      "text": "Vsak izdelek je narejen ročno z mislijo na trajnost in estetiko."
+    },
+    {
+      "title": "Lokalna izdelava",
+      "text": "Podpiramo domače obrtnike in lesena dela iz slovenskih delavnic."
+    },
+    {
+      "title": "Cilj strani",
+      "text": "Pripraviti jasno, privlačno in informativno predstavitev izdelkov."
+    }
+  ],
+  "gallery": {
+    "eyebrow": "Galerija",
+    "title": "Primeri izdelkov in ambientov"
+  },
+  "galleryItems": [
+    {
+      "title": "Topli detajli",
+      "description": "Elegantni zaključki, ki poudarjajo naravno strukturo lesa.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Topli leseni detajli"
+    },
+    {
+      "title": "Skladiščni ambient",
+      "description": "Minimalistična postavitev, namenjena predstavitvi samega izdelka.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Leseni ambient s komodo"
+    },
+    {
+      "title": "Ročna izdelava",
+      "description": "Vsak kos nosi unikaten pečat ročne obdelave.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Ročna lesena šahovnica"
+    }
+  ],
+  "productsSection": {
+    "eyebrow": "Izbor izdelkov",
+    "title": "Leseni kosi iz delavnice PravoLes"
+  },
+  "products": [
+    {
+      "title": "Stol iz masivnega lesa",
+      "description": "Ročno brušen stol s poudarkom na naravni teksturi in udobju.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Lesen stol v svetlem prostoru"
+    },
+    {
+      "title": "Komoda s predalniki",
+      "description": "Čisti robovi, mehko zapiranje in topli toni masivnega lesa.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Lesena komoda s predalniki"
+    },
+    {
+      "title": "Šahovnica iz oreha",
+      "description": "Kontrastna šahovnica, lakirana za dolgotrajno zaščito.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Lesena šahovnica na mizi"
+    }
+  ],
+  "contact": {
+    "eyebrow": "Kontakt",
+    "title": "Pišite nam za informacije in naročila po meri",
+    "note": "Če želite hitro povpraševanje, pošljite e-pošto na info@pravoles.si in pripišite približno želeno velikost, material in rok dobave."
+  },
+  "contactItems": [
+    {
+      "title": "Kontaktna točka",
+      "text": "Pišite na info@pravoles.si za povpraševanja o cenah in materialih."
+    },
+    {
+      "title": "Sestanek v delavnici",
+      "text": "Organiziramo ogled in svetovanje za okroglih 15 minut."
+    },
+    {
+      "title": "Prilagojena ponudba",
+      "text": "Za naročila po meri pripravimo predračun in čas izdelave."
+    }
+  ]
+}

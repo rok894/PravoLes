@@ -1,0 +1,115 @@
+{
+  "nav": {
+    "vsebina": "Overview",
+    "products": "Products",
+    "about": "About",
+    "gallery": "Gallery",
+    "contact": "Contact"
+  },
+  "hero": {
+    "eyebrow": "Dynamic page structure",
+    "title": "PravoLes",
+    "lead": "A calm, elegant base for a static site, built with Vite, React, and TypeScript.",
+    "primaryCta": "See structure",
+    "secondaryCta": "Contact"
+  },
+  "structure": {
+    "eyebrow": "Project base",
+    "title": "What is included now"
+  },
+  "highlights": [
+    {
+      "title": "Natural materials",
+      "text": "Focused on wood, texture, and a sense of warmth in the space."
+    },
+    {
+      "title": "Hand-finished look",
+      "text": "A calm, clear base prepared for showcasing products."
+    }
+  ],
+  "about": {
+    "eyebrow": "About us",
+    "title": "Our story and vision"
+  },
+  "aboutPoints": [
+    {
+      "title": "Right approach",
+      "text": "Each piece is handmade with sustainability and aesthetics in mind."
+    },
+    {
+      "title": "Local craftsmanship",
+      "text": "We support local artisans and woodwork from Slovenian workshops."
+    },
+    {
+      "title": "Goal of the site",
+      "text": "Deliver a clear, attractive, and informative product presentation."
+    }
+  ],
+  "gallery": {
+    "eyebrow": "Gallery",
+    "title": "Examples of products and interiors"
+  },
+  "galleryItems": [
+    {
+      "title": "Warm details",
+      "description": "Elegant finishes that highlight the wood's natural grain.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Warm wooden details"
+    },
+    {
+      "title": "Calm interior",
+      "description": "Minimal layout designed to present the piece itself.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Wooden interior with a sideboard"
+    },
+    {
+      "title": "Handmade craft",
+      "description": "Every piece carries a unique handmade signature.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Handmade wooden chessboard"
+    }
+  ],
+  "productsSection": {
+    "eyebrow": "Product selection",
+    "title": "Wooden pieces from the PravoLes workshop"
+  },
+  "products": [
+    {
+      "title": "Solid wood chair",
+      "description": "Hand-sanded chair with emphasis on natural texture and comfort.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Wooden chair in a bright room"
+    },
+    {
+      "title": "Sideboard with drawers",
+      "description": "Clean lines, soft-close drawers, and warm tones of solid wood.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Wooden sideboard with drawers"
+    },
+    {
+      "title": "Walnut chessboard",
+      "description": "Contrasting chessboard, lacquered for long-lasting protection.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Wooden chessboard on a table"
+    }
+  ],
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Write to us for info and custom orders",
+    "note": "For a quick inquiry, email info@pravoles.si and include approximate size, material, and delivery timeframe."
+  },
+  "contactItems": [
+    {
+      "title": "Contact point",
+      "text": "Write to info@pravoles.si for pricing and materials."
+    },
+    {
+      "title": "Workshop visit",
+      "text": "We arrange a 15-minute visit and consultation."
+    },
+    {
+      "title": "Tailored offer",
+      "text": "For custom orders we prepare a quote and production time."
+    }
+  ]
+}

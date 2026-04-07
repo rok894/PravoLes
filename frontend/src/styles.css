@@ -93,6 +93,41 @@ a {
   margin-top: 32px;
 }
 
+.lang-switch {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.lang-switch__btn {
+  border: 1px solid rgba(47, 33, 23, 0.18);
+  background: rgba(255, 250, 244, 0.8);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  color: #4f3d30;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.lang-switch__btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 250, 244, 1);
+  border-color: rgba(47, 33, 23, 0.26);
+}
+
+.lang-switch__btn--active {
+  background: #2f2117;
+  color: #f7f0e7;
+  border-color: #2f2117;
+  box-shadow: 0 10px 22px rgba(47, 33, 23, 0.18);
+}
+
 .hero__nav {
   display: flex;
   flex-wrap: wrap;
