@@ -23,12 +23,6 @@ const highlights = [
   },
 ];
 
-const steps = [
-  "Dodaj predstavitvene fotografije izdelkov.",
-  "Razširi vsebino z dodatnimi sekcijami ali podstranmi.",
-  "Po potrebi poveži z API-jem ali CMS-om.",
-];
-
 const products = [
   {
     title: "Stol iz masivnega lesa",
@@ -185,19 +179,6 @@ function App() {
         </section>
 
         <ProductShowcase products={products} />
-
-        <section className="panel" id="naslednji-koraki">
-          <div className="section-heading">
-            <span>Naprej</span>
-            <h2>Predlagani naslednji koraki</h2>
-          </div>
-
-          <ol className="steps">
-            {steps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
-        </section>
 
         <section className="panel panel--accent" id="kontakt">
           <div className="section-heading">

@@ -9,6 +9,8 @@ type Props = {
   products: Product[];
 };
 
+import ImageZoom from "./ImageZoom";
+
 function ProductShowcase({ products }: Props) {
   return (
     <section className="panel" id="products">
@@ -21,7 +23,11 @@ function ProductShowcase({ products }: Props) {
         {products.map((product) => (
           <article className="product-card" key={product.title}>
             <div className="product-card__image">
-              <img src={product.image} alt={product.alt} loading="lazy" />
+              <ImageZoom
+                src={product.image}
+                alt={product.alt}
+                caption={product.title}
+              />
             </div>
             <div className="product-card__body">
               <h3>{product.title}</h3>
