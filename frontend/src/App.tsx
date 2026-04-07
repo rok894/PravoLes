@@ -17,10 +17,6 @@ const highlights = [
     title: "Ročno dodelan izgled",
     text: "Stran je pripravljena kot mirna, pregledna osnova za predstavitev izdelkov.",
   },
-  {
-    title: "Pripravljeno za rast",
-    text: "Ko bo čas, lahko to osnovo razširimo v katalog, CMS ali e-trgovino.",
-  },
 ];
 
 const products = [
