@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProductShowcase from "./components/ProductShowcase";
 
@@ -13,6 +14,14 @@ type ContactItem = { title: string; text: string };
 
 function App() {
   const { t, i18n } = useTranslation();
+  const [langOpen, setLangOpen] = useState(false);
+
+  const languageOptions = [
+    { code: "sl", label: "Slovenščina" },
+    { code: "en", label: "English" },
+    { code: "de", label: "Deutsch" },
+    { code: "it", label: "Italiano" },
+  ];
 
   const navLinks = [
     { href: "#vsebina", label: t("nav.vsebina") },
@@ -47,29 +56,35 @@ function App() {
           ))}
         </nav>
 
-        <div className="lang-switch" aria-label="Language switcher">
+        <div className="lang-menu" aria-label="Language switcher">
           <button
             type="button"
-            className={
-              i18n.language.startsWith("sl")
-                ? "lang-switch__btn lang-switch__btn--active"
-                : "lang-switch__btn"
-            }
-            onClick={() => i18n.changeLanguage("sl")}
+            className="lang-menu__toggle"
+            onClick={() => setLangOpen((v) => !v)}
           >
-            SL
+            {i18n.language.toUpperCase().slice(0, 2)}
           </button>
-          <button
-            type="button"
-            className={
-              i18n.language.startsWith("en")
-                ? "lang-switch__btn lang-switch__btn--active"
-                : "lang-switch__btn"
-            }
-            onClick={() => i18n.changeLanguage("en")}
-          >
-            EN
-          </button>
+          {langOpen && (
+            <div className="lang-menu__list">
+              {languageOptions.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  className={
+                    i18n.language.startsWith(lang.code)
+                      ? "lang-menu__item lang-menu__item--active"
+                      : "lang-menu__item"
+                  }
+                  onClick={() => {
+                    i18n.changeLanguage(lang.code);
+                    setLangOpen(false);
+                  }}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="hero__actions">

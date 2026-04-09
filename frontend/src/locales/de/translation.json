@@ -1,0 +1,115 @@
+{
+  "nav": {
+    "vsebina": "Inhalt",
+    "products": "Produkte",
+    "about": "Über uns",
+    "gallery": "Galerie",
+    "contact": "Kontakt"
+  },
+  "hero": {
+    "eyebrow": "Dynamische Seitenstruktur",
+    "title": "PravoLes",
+    "lead": "Eine ruhige, elegante Basis für eine statische Website, gebaut mit Vite, React und TypeScript.",
+    "primaryCta": "Struktur ansehen",
+    "secondaryCta": "Kontakt"
+  },
+  "structure": {
+    "eyebrow": "Projektbasis",
+    "title": "Was derzeit enthalten ist"
+  },
+  "highlights": [
+    {
+      "title": "Natürliche Materialien",
+      "text": "Fokus auf Holz, Textur und ein Gefühl von Wärme im Raum."
+    },
+    {
+      "title": "Handveredelter Look",
+      "text": "Eine ruhige, klare Basis zur Präsentation der Produkte."
+    }
+  ],
+  "about": {
+    "eyebrow": "Über uns",
+    "title": "Unsere Geschichte und Vision"
+  },
+  "aboutPoints": [
+    {
+      "title": "Richtiger Ansatz",
+      "text": "Jedes Stück wird in Handarbeit mit Blick auf Nachhaltigkeit und Ästhetik gefertigt."
+    },
+    {
+      "title": "Lokale Herstellung",
+      "text": "Wir unterstützen heimische Handwerker und Holzarbeiten aus slowenischen Werkstätten."
+    },
+    {
+      "title": "Ziel der Seite",
+      "text": "Eine klare, ansprechende und informative Produktpräsentation bieten."
+    }
+  ],
+  "gallery": {
+    "eyebrow": "Galerie",
+    "title": "Beispiele von Produkten und Interieurs"
+  },
+  "galleryItems": [
+    {
+      "title": "Warme Details",
+      "description": "Elegante Abschlüsse, die die natürliche Maserung des Holzes betonen.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Warme Holzdetails"
+    },
+    {
+      "title": "Beruhigendes Ambiente",
+      "description": "Minimalistisches Layout, entworfen zur Präsentation des Stücks selbst.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Holzinterieur mit Kommode"
+    },
+    {
+      "title": "Handarbeit",
+      "description": "Jedes Stück trägt eine einzigartige handwerkliche Signatur.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Handgemachtes hölzernes Schachbrett"
+    }
+  ],
+  "productsSection": {
+    "eyebrow": "Produktauswahl",
+    "title": "Holzstücke aus der PravoLes Werkstatt"
+  },
+  "products": [
+    {
+      "title": "Stuhl aus Massivholz",
+      "description": "Handgeschliffener Stuhl mit Fokus auf natürlicher Textur und Komfort.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Holzstuhl in einem hellen Raum"
+    },
+    {
+      "title": "Kommode mit Schubladen",
+      "description": "Klare Linien, Soft-Close und warme Töne aus Massivholz.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Holzkommode mit Schubladen"
+    },
+    {
+      "title": "Schachbrett aus Nussbaum",
+      "description": "Kontrastreiches Schachbrett, lackiert für langanhaltenden Schutz.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Hölzernes Schachbrett auf einem Tisch"
+    }
+  ],
+  "contact": {
+    "eyebrow": "Kontakt",
+    "title": "Schreiben Sie uns für Infos und Maßanfertigungen",
+    "note": "Für eine schnelle Anfrage senden Sie eine E-Mail an info@pravoles.si und fügen Sie gewünschte Größe, Material und Lieferzeit hinzu."
+  },
+  "contactItems": [
+    {
+      "title": "Kontaktpunkt",
+      "text": "Schreiben Sie an info@pravoles.si für Preise und Materialien."
+    },
+    {
+      "title": "Werkstattbesuch",
+      "text": "Wir organisieren einen 15-minütigen Besuch und Beratung."
+    },
+    {
+      "title": "Individuelles Angebot",
+      "text": "Für Maßanfertigungen erstellen wir ein Angebot und die Produktionszeit."
+    }
+  ]
+}

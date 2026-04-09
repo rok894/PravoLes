@@ -1,0 +1,115 @@
+{
+  "nav": {
+    "vsebina": "Contenuto",
+    "products": "Prodotti",
+    "about": "Chi siamo",
+    "gallery": "Galleria",
+    "contact": "Contatto"
+  },
+  "hero": {
+    "eyebrow": "Struttura dinamica della pagina",
+    "title": "PravoLes",
+    "lead": "Una base calma ed elegante per un sito statico, costruito con Vite, React e TypeScript.",
+    "primaryCta": "Vedi struttura",
+    "secondaryCta": "Contatto"
+  },
+  "structure": {
+    "eyebrow": "Base del progetto",
+    "title": "Cosa è incluso ora"
+  },
+  "highlights": [
+    {
+      "title": "Materiali naturali",
+      "text": "Focus sul legno, la texture e una sensazione di calore nello spazio."
+    },
+    {
+      "title": "Finitura artigianale",
+      "text": "Una base calma e chiara preparata per la presentazione dei prodotti."
+    }
+  ],
+  "about": {
+    "eyebrow": "Chi siamo",
+    "title": "La nostra storia e visione"
+  },
+  "aboutPoints": [
+    {
+      "title": "Approccio corretto",
+      "text": "Ogni pezzo è realizzato a mano con attenzione a sostenibilità ed estetica."
+    },
+    {
+      "title": "Produzione locale",
+      "text": "Sosteniamo artigiani locali e lavorazioni in legno da laboratori sloveni."
+    },
+    {
+      "title": "Obiettivo del sito",
+      "text": "Offrire una presentazione chiara, attraente e informativa dei prodotti."
+    }
+  ],
+  "gallery": {
+    "eyebrow": "Galleria",
+    "title": "Esempi di prodotti e ambienti"
+  },
+  "galleryItems": [
+    {
+      "title": "Dettagli caldi",
+      "description": "Finiture eleganti che mettono in risalto la venatura naturale del legno.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Dettagli in legno caldo"
+    },
+    {
+      "title": "Ambiente sereno",
+      "description": "Layout minimalista, pensato per presentare il pezzo stesso.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Ambiente in legno con credenza"
+    },
+    {
+      "title": "Lavorazione a mano",
+      "description": "Ogni pezzo porta un segno unico della lavorazione artigianale.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Scacchiera in legno fatta a mano"
+    }
+  ],
+  "productsSection": {
+    "eyebrow": "Selezione prodotti",
+    "title": "Pezzi in legno dal laboratorio PravoLes"
+  },
+  "products": [
+    {
+      "title": "Sedia in legno massello",
+      "description": "Sedia levigata a mano con enfasi su texture naturale e comfort.",
+      "image": "/images/stol_1.jpg",
+      "alt": "Sedia in legno in una stanza luminosa"
+    },
+    {
+      "title": "Credenza con cassetti",
+      "description": "Linee pulite, chiusura morbida e toni caldi del legno massello.",
+      "image": "/images/predalčki_1.jpg",
+      "alt": "Credenza in legno con cassetti"
+    },
+    {
+      "title": "Scacchiera in noce",
+      "description": "Scacchiera a contrasto, laccata per una protezione duratura.",
+      "image": "/images/šahovnica_1.jpg",
+      "alt": "Scacchiera in legno su un tavolo"
+    }
+  ],
+  "contact": {
+    "eyebrow": "Contatto",
+    "title": "Scrivici per informazioni e ordini su misura",
+    "note": "Per una richiesta rapida, invia un'email a info@pravoles.si indicando dimensioni, materiale e tempi di consegna desiderati."
+  },
+  "contactItems": [
+    {
+      "title": "Punto di contatto",
+      "text": "Scrivi a info@pravoles.si per prezzi e materiali."
+    },
+    {
+      "title": "Visita in laboratorio",
+      "text": "Organizziamo una visita e consulenza di circa 15 minuti."
+    },
+    {
+      "title": "Offerta personalizzata",
+      "text": "Per ordini su misura prepariamo preventivo e tempi di produzione."
+    }
+  ]
+}
