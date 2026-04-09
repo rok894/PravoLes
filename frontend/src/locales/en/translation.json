@@ -7,6 +7,18 @@
     "contact": "Contact"
   },
   "navTitle": "Sections",
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty. Add a product.",
+    "add": "Add to cart",
+    "remove": "Remove",
+    "clear": "Clear",
+    "checkout": "Send inquiry",
+    "qty": "Qty",
+    "mailtoSubject": "Inquiry - cart",
+    "mailtoIntro": "Hello, I'm interested in the following products:",
+    "mailtoOutro": "Thanks and best regards."
+  },
   "hero": {
     "eyebrow": "Dynamic page structure",
     "title": "PravoLes",

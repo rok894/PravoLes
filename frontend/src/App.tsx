@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProductShowcase from "./components/ProductShowcase";
+import CartPanel from "./components/CartPanel";
+import { CartProvider } from "./cart";
 
 type Highlight = { title: string; text: string };
 type AboutPoint = { title: string; text: string };
@@ -42,11 +44,12 @@ function App() {
   }) as ContactItem[];
 
   return (
-    <div className="page-shell">
-      <header className="hero">
-        <div className="hero__eyebrow">{t("hero.eyebrow")}</div>
-        <h1>{t("hero.title")}</h1>
-        <p className="hero__lead">{t("hero.lead")}</p>
+    <CartProvider>
+      <div className="page-shell">
+        <header className="hero">
+          <div className="hero__eyebrow">{t("hero.eyebrow")}</div>
+          <h1>{t("hero.title")}</h1>
+          <p className="hero__lead">{t("hero.lead")}</p>
 
         <div className="lang-menu" aria-label="Language switcher">
           <button
@@ -91,17 +94,19 @@ function App() {
         </div>
       </header>
 
-      <div className="content-layout">
-        <aside className="side-nav" aria-label={t("navTitle")}>
-          <div className="side-nav__heading">{t("navTitle")}</div>
-          <nav className="side-nav__list">
-            {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="side-nav__link">
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        </aside>
+        <div className="content-layout">
+          <aside className="side-nav" aria-label={t("navTitle")}>
+            <div className="side-nav__heading">{t("navTitle")}</div>
+            <nav className="side-nav__list">
+              {navLinks.map((link) => (
+                <a key={link.href} href={link.href} className="side-nav__link">
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+
+            <CartPanel />
+          </aside>
 
         <main className="content">
         <section className="panel" id="vsebina">
@@ -180,9 +185,10 @@ function App() {
             </p>
           </div>
         </section>
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </CartProvider>
   );
 }
 

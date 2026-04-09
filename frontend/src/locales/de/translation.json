@@ -7,6 +7,18 @@
     "contact": "Kontakt"
   },
   "navTitle": "Sektionen",
+  "cart": {
+    "title": "Warenkorb",
+    "empty": "Ihr Warenkorb ist leer. Fügen Sie ein Produkt hinzu.",
+    "add": "In den Warenkorb",
+    "remove": "Entfernen",
+    "clear": "Leeren",
+    "checkout": "Anfrage senden",
+    "qty": "Menge",
+    "mailtoSubject": "Anfrage - Warenkorb",
+    "mailtoIntro": "Hallo, ich interessiere mich für folgende Produkte:",
+    "mailtoOutro": "Danke und freundliche Grüße."
+  },
   "hero": {
     "eyebrow": "Dynamische Seitenstruktur",
     "title": "PravoLes",

@@ -7,6 +7,18 @@
     "contact": "Kontakt"
   },
   "navTitle": "Sekcije",
+  "cart": {
+    "title": "Košarica",
+    "empty": "Košarica je prazna. Dodajte izdelek.",
+    "add": "Dodaj v košarico",
+    "remove": "Odstrani",
+    "clear": "Počisti",
+    "checkout": "Pošlji povpraševanje",
+    "qty": "Količina",
+    "mailtoSubject": "Povpraševanje - košarica",
+    "mailtoIntro": "Pozdravljeni, zanimajo me naslednji izdelki:",
+    "mailtoOutro": "Hvala in lep pozdrav."
+  },
   "hero": {
     "eyebrow": "Dinamična struktura strani",
     "title": "PravoLes",

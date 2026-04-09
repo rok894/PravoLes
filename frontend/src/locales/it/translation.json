@@ -7,6 +7,18 @@
     "contact": "Contatto"
   },
   "navTitle": "Sezioni",
+  "cart": {
+    "title": "Carrello",
+    "empty": "Il carrello è vuoto. Aggiungi un prodotto.",
+    "add": "Aggiungi al carrello",
+    "remove": "Rimuovi",
+    "clear": "Svuota",
+    "checkout": "Invia richiesta",
+    "qty": "Quantità",
+    "mailtoSubject": "Richiesta - carrello",
+    "mailtoIntro": "Ciao, mi interessano i seguenti prodotti:",
+    "mailtoOutro": "Grazie e cordiali saluti."
+  },
   "hero": {
     "eyebrow": "Struttura dinamica della pagina",
     "title": "PravoLes",
