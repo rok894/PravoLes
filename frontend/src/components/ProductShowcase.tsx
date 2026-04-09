@@ -1,3 +1,7 @@
+import { useTranslation } from "react-i18next";
+import ImageZoom from "./ImageZoom";
+import { useCart } from "../cart";
+
 type Product = {
   title: string;
   description: string;
@@ -9,14 +13,15 @@ type Props = {
   products: Product[];
 };
 
-import ImageZoom from "./ImageZoom";
-
 function ProductShowcase({ products }: Props) {
+  const { t } = useTranslation();
+  const cart = useCart();
+
   return (
     <section className="panel" id="products">
       <div className="section-heading">
-        <span>Izbor izdelkov</span>
-        <h2>Leseni kosi iz delavnice PravoLes</h2>
+        <span>{t("productsSection.eyebrow")}</span>
+        <h2>{t("productsSection.title")}</h2>
       </div>
 
       <div className="product-grid">
@@ -32,6 +37,15 @@ function ProductShowcase({ products }: Props) {
             <div className="product-card__body">
               <h3>{product.title}</h3>
               <p>{product.description}</p>
+              <div className="product-card__actions">
+                <button
+                  type="button"
+                  className="button button--primary button--small"
+                  onClick={() => cart.add(product)}
+                >
+                  {t("cart.add")}
+                </button>
+              </div>
             </div>
           </article>
         ))}
