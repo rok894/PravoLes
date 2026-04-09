@@ -48,14 +48,6 @@ function App() {
         <h1>{t("hero.title")}</h1>
         <p className="hero__lead">{t("hero.lead")}</p>
 
-        <nav className="hero__nav">
-          {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className="hero__nav-item">
-              {link.label}
-            </a>
-          ))}
-        </nav>
-
         <div className="lang-menu" aria-label="Language switcher">
           <button
             type="button"
@@ -99,7 +91,19 @@ function App() {
         </div>
       </header>
 
-      <main className="content">
+      <div className="content-layout">
+        <aside className="side-nav" aria-label={t("navTitle")}>
+          <div className="side-nav__heading">{t("navTitle")}</div>
+          <nav className="side-nav__list">
+            {navLinks.map((link) => (
+              <a key={link.href} href={link.href} className="side-nav__link">
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        </aside>
+
+        <main className="content">
         <section className="panel" id="vsebina">
           <div className="section-heading">
             <span>{t("structure.eyebrow")}</span>
@@ -176,7 +180,8 @@ function App() {
             </p>
           </div>
         </section>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
