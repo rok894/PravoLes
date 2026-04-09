@@ -61,8 +61,10 @@ function App() {
             type="button"
             className="lang-menu__toggle"
             onClick={() => setLangOpen((v) => !v)}
+            aria-expanded={langOpen}
+            aria-haspopup="listbox"
           >
-            {i18n.language.toUpperCase().slice(0, 2)}
+            Language
           </button>
           {langOpen && (
             <div className="lang-menu__list">
