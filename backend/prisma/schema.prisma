@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CartStatus {
+  OPEN
+  CHECKED_OUT
+  ABANDONED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum PaymentStatus {
+  REQUIRES_ACTION
+  SUCCEEDED
+  FAILED
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  title       String
+  description String
+  image       String
+  alt         String
+  priceCents  Int
+  currency    String   @default("EUR")
+  active      Boolean  @default(true)
+
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  @@index([active])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  status    CartStatus @default(OPEN)
+
+  email     String?
+
+  items     CartItem[]
+
+  order     Order?
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartId    String
+  productId String
+  qty       Int      @default(1)
+
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  status           OrderStatus @default(PENDING)
+
+  cartId           String      @unique
+  cart             Cart        @relation(fields: [cartId], references: [id], onDelete: Restrict)
+
+  totalCents       Int
+  currency         String      @default("EUR")
+
+  customerEmail    String?
+
+  items            OrderItem[]
+  payment          Payment?
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderId     String
+  productId   String?
+
+  title       String
+  description String
+  image       String
+  alt         String
+  priceCents  Int
+  qty         Int
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model Payment {
+  id                 String        @id @default(cuid())
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  status             PaymentStatus @default(REQUIRES_ACTION)
+
+  orderId            String        @unique
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  stripeCustomerId   String?
+  stripeSessionId    String?       @unique
+  stripePaymentIntentId String?    @unique
+}
