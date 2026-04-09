@@ -21,20 +21,28 @@ export async function GET() {
     cartId = await getOrCreateCartId();
   } catch {
     return NextResponse.json(
-      { error: "Failed to load cart" },
-      { status: 500 },
+      { error: "Database is unavailable" },
+      { status: 503 },
     );
   }
 
-  const cart = await prisma.cart.findUnique({
-    where: { id: cartId },
-    include: {
-      items: {
-        include: { product: true },
-        orderBy: { createdAt: "asc" },
+  let cart;
+  try {
+    cart = await prisma.cart.findUnique({
+      where: { id: cartId },
+      include: {
+        items: {
+          include: { product: true },
+          orderBy: { createdAt: "asc" },
+        },
       },
-    },
-  });
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Database is unavailable" },
+      { status: 503 },
+    );
+  }
 
   if (!cart) {
     return NextResponse.json(

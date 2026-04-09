@@ -14,10 +14,18 @@ export async function GET() {
       { status: 500 },
     );
   }
-  const products = await prisma.product.findMany({
-    where: { active: true },
-    orderBy: { createdAt: "asc" },
-  });
+  let products;
+  try {
+    products = await prisma.product.findMany({
+      where: { active: true },
+      orderBy: { createdAt: "asc" },
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Database is unavailable" },
+      { status: 503 },
+    );
+  }
 
   return NextResponse.json({ products });
 }

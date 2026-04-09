@@ -55,22 +55,29 @@ export async function POST(req: Request) {
 
       if (!orderId) break;
 
-      await prisma.order.updateMany({
-        where: { id: orderId },
-        data: {
-          status: "PAID",
-        },
-      });
+      try {
+        await prisma.order.updateMany({
+          where: { id: orderId },
+          data: {
+            status: "PAID",
+          },
+        });
 
-      await prisma.payment.updateMany({
-        where: { stripeSessionId: session.id },
-        data: {
-          status: "SUCCEEDED",
-          stripeCustomerId:
-            typeof session.customer === "string" ? session.customer : null,
-          stripePaymentIntentId: paymentIntent,
-        },
-      });
+        await prisma.payment.updateMany({
+          where: { stripeSessionId: session.id },
+          data: {
+            status: "SUCCEEDED",
+            stripeCustomerId:
+              typeof session.customer === "string" ? session.customer : null,
+            stripePaymentIntentId: paymentIntent,
+          },
+        });
+      } catch {
+        return NextResponse.json(
+          { error: "Database is unavailable" },
+          { status: 503 },
+        );
+      }
       break;
     }
 
@@ -78,14 +85,21 @@ export async function POST(req: Request) {
       const session = event.data.object;
       const orderId = (session.metadata?.orderId as string | undefined) ?? null;
       if (!orderId) break;
-      await prisma.order.updateMany({
-        where: { id: orderId },
-        data: { status: "CANCELED" },
-      });
-      await prisma.payment.updateMany({
-        where: { stripeSessionId: session.id },
-        data: { status: "FAILED" },
-      });
+      try {
+        await prisma.order.updateMany({
+          where: { id: orderId },
+          data: { status: "CANCELED" },
+        });
+        await prisma.payment.updateMany({
+          where: { stripeSessionId: session.id },
+          data: { status: "FAILED" },
+        });
+      } catch {
+        return NextResponse.json(
+          { error: "Database is unavailable" },
+          { status: 503 },
+        );
+      }
       break;
     }
 
