@@ -19,6 +19,24 @@
     "mailtoIntro": "Hallo, ich interessiere mich für folgende Produkte:",
     "mailtoOutro": "Danke und freundliche Grüße."
   },
+  "auth": {
+    "title": "Konto",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "login": "Anmelden",
+    "signup": "Registrieren",
+    "logout": "Abmelden",
+    "switchSignup": "Registrieren",
+    "switchLogin": "Anmelden",
+    "loggedInAs": "Angemeldet als",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "continueAsGuest": "Als Gast fortfahren",
+    "popupBlocked": "Popup blockiert. Bitte Popups erlauben und erneut versuchen.",
+    "popupError": "Login fehlgeschlagen. Bitte erneut versuchen.",
+    "modalEyebrow": "Anmelden",
+    "modalTitle": "Mit Google anmelden",
+    "modalText": "Zum Fortfahren mit Ihrem Gmail-Konto anmelden oder als Gast weiter."
+  },
   "hero": {
     "eyebrow": "Dynamische Seitenstruktur",
     "title": "PravoLes",

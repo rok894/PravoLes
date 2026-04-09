@@ -19,6 +19,24 @@
     "mailtoIntro": "Pozdravljeni, zanimajo me naslednji izdelki:",
     "mailtoOutro": "Hvala in lep pozdrav."
   },
+  "auth": {
+    "title": "Račun",
+    "email": "E-pošta",
+    "password": "Geslo",
+    "login": "Prijava",
+    "signup": "Registracija",
+    "logout": "Odjava",
+    "switchSignup": "Registracija",
+    "switchLogin": "Prijava",
+    "loggedInAs": "Prijavljeni kot",
+    "continueWithGoogle": "Nadaljuj z Googlom",
+    "continueAsGuest": "Nadaljuj kot gost",
+    "popupBlocked": "Popup je blokiran. Dovoli popupe in poskusi znova.",
+    "popupError": "Prijava ni uspela. Poskusi znova.",
+    "modalEyebrow": "Prijava",
+    "modalTitle": "Prijava z Googlom",
+    "modalText": "Za nadaljevanje se prijavi z Gmail računom ali nadaljuj kot gost."
+  },
   "hero": {
     "eyebrow": "Dinamična struktura strani",
     "title": "PravoLes",

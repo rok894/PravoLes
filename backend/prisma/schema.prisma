@@ -127,3 +127,29 @@ model Payment {
   stripeSessionId    String?       @unique
   stripePaymentIntentId String?    @unique
 }
+
+model User {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  email        String   @unique
+  passwordHash String?
+  googleSub    String?  @unique
+
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  token     String   @unique
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}

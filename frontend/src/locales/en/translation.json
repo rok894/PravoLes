@@ -19,6 +19,24 @@
     "mailtoIntro": "Hello, I'm interested in the following products:",
     "mailtoOutro": "Thanks and best regards."
   },
+  "auth": {
+    "title": "Account",
+    "email": "Email",
+    "password": "Password",
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Log out",
+    "switchSignup": "Sign up",
+    "switchLogin": "Log in",
+    "loggedInAs": "Logged in as",
+    "continueWithGoogle": "Continue with Google",
+    "continueAsGuest": "Continue as guest",
+    "popupBlocked": "Popup blocked. Please allow popups and try again.",
+    "popupError": "Login failed. Please try again.",
+    "modalEyebrow": "Sign in",
+    "modalTitle": "Log in with Google",
+    "modalText": "To continue, log in with your Gmail account or proceed as a guest."
+  },
   "hero": {
     "eyebrow": "Dynamic page structure",
     "title": "PravoLes",

@@ -19,6 +19,24 @@
     "mailtoIntro": "Ciao, mi interessano i seguenti prodotti:",
     "mailtoOutro": "Grazie e cordiali saluti."
   },
+  "auth": {
+    "title": "Account",
+    "email": "Email",
+    "password": "Password",
+    "login": "Accedi",
+    "signup": "Registrati",
+    "logout": "Esci",
+    "switchSignup": "Registrati",
+    "switchLogin": "Accedi",
+    "loggedInAs": "Accesso come",
+    "continueWithGoogle": "Continua con Google",
+    "continueAsGuest": "Continua come ospite",
+    "popupBlocked": "Popup bloccato. Consenti i popup e riprova.",
+    "popupError": "Accesso non riuscito. Riprova.",
+    "modalEyebrow": "Accedi",
+    "modalTitle": "Accedi con Google",
+    "modalText": "Per continuare, accedi con Gmail oppure procedi come ospite."
+  },
   "hero": {
     "eyebrow": "Struttura dinamica della pagina",
     "title": "PravoLes",
