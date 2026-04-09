@@ -80,6 +80,12 @@
       "description": "Vsak kos nosi unikaten pečat ročne obdelave.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Ročna lesena šahovnica"
+    },
+    {
+      "title": "Delovna deska (AI koncept)",
+      "description": "Sodobna idejna vizualizacija delovne deske, ustvarjena z AI za inspiracijo.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "AI vizualizacija lesene delovne deske"
     }
   ],
   "productsSection": {
@@ -104,6 +110,12 @@
       "description": "Kontrastna šahovnica, lakirana za dolgotrajno zaščito.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Lesena šahovnica na mizi"
+    },
+    {
+      "title": "Delovna deska (AI koncept)",
+      "description": "Sodobna idejna vizualizacija delovne deske, ustvarjena z AI za inspiracijo.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "AI vizualizacija lesene delovne deske"
     }
   ],
   "contact": {

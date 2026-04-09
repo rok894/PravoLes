@@ -80,6 +80,12 @@
       "description": "Ogni pezzo porta un segno unico della lavorazione artigianale.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Scacchiera in legno fatta a mano"
+    },
+    {
+      "title": "Banco da lavoro (concetto AI)",
+      "description": "Visualizzazione concettuale moderna di un banco da lavoro, creata con l'AI per ispirazione.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "Visualizzazione AI di un banco da lavoro in legno"
     }
   ],
   "productsSection": {
@@ -104,6 +110,12 @@
       "description": "Scacchiera a contrasto, laccata per una protezione duratura.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Scacchiera in legno su un tavolo"
+    },
+    {
+      "title": "Piano di lavoro (concept IA)",
+      "description": "Visualizzazione moderna generata con IA di un piano di lavoro in legno, pensata per l’ispirazione.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "Visualizzazione IA di un piano di lavoro in legno"
     }
   ],
   "contact": {

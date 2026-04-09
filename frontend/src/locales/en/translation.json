@@ -80,6 +80,12 @@
       "description": "Every piece carries a unique handmade signature.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Handmade wooden chessboard"
+    },
+    {
+      "title": "Workbench (AI concept)",
+      "description": "A modern concept visualization of a workbench, generated with AI for inspiration.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "AI visualization of a wooden workbench"
     }
   ],
   "productsSection": {
@@ -104,6 +110,12 @@
       "description": "Contrasting chessboard, lacquered for long-lasting protection.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Wooden chessboard on a table"
+    },
+    {
+      "title": "Worktop concept (AI)",
+      "description": "Modern AI-generated visualization of a wooden worktop for inspiration.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "AI visualization of a wooden worktop"
     }
   ],
   "contact": {

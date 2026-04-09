@@ -80,6 +80,12 @@
       "description": "Jedes Stück trägt eine einzigartige handwerkliche Signatur.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Handgemachtes hölzernes Schachbrett"
+    },
+    {
+      "title": "Werkbank (KI-Konzept)",
+      "description": "Moderne Konzeptvisualisierung einer Werkbank, mit KI zur Inspiration erstellt.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "KI-Visualisierung einer hölzernen Werkbank"
     }
   ],
   "productsSection": {
@@ -104,6 +110,12 @@
       "description": "Kontrastreiches Schachbrett, lackiert für langanhaltenden Schutz.",
       "image": "/images/šahovnica_1.jpg",
       "alt": "Hölzernes Schachbrett auf einem Tisch"
+    },
+    {
+      "title": "Arbeitsplatte Konzept (KI)",
+      "description": "Modernes, KI-generiertes Rendering einer Holz-Arbeitsplatte als Inspiration.",
+      "image": "/images/ai_deska.jpg",
+      "alt": "KI-Visualisierung einer Holz-Arbeitsplatte"
     }
   ],
   "contact": {
