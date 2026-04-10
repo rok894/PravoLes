@@ -29,13 +29,11 @@
     "switchSignup": "Sign up",
     "switchLogin": "Log in",
     "loggedInAs": "Logged in as",
-    "continueWithGoogle": "Continue with Google",
     "continueAsGuest": "Continue as guest",
-    "popupBlocked": "Popup blocked. Please allow popups and try again.",
-    "popupError": "Login failed. Please try again.",
+    "dbUnavailable": "Database is unavailable. Start Postgres and run migrations, then reload.",
     "modalEyebrow": "Sign in",
-    "modalTitle": "Log in with Google",
-    "modalText": "To continue, log in with your Gmail account or proceed as a guest."
+    "modalTitle": "Log in or sign up",
+    "modalText": "To continue, log in with your email or proceed as a guest."
   },
   "hero": {
     "eyebrow": "Dynamic page structure",

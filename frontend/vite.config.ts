@@ -8,5 +8,16 @@ export default defineConfig({
       usePolling: true,
       interval: 100,
     },
+    proxy: {
+      // Dev-only: proxy backend routes so auth cookies are same-origin.
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: false,
+      },
+      "/checkout": {
+        target: "http://localhost:3000",
+        changeOrigin: false,
+      },
+    },
   },
 });

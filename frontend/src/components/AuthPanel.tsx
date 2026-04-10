@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BACKEND_URL, fetchJson } from "../api";
+import { fetchJson } from "../api";
 
 type User = { id: string; email: string };
 
@@ -28,6 +28,16 @@ function AuthPanel() {
   useEffect(() => {
     refreshMe();
   }, []);
+
+  useEffect(() => {
+    function onMessage(evt: MessageEvent) {
+      // No popup-based auth.
+      void evt;
+    }
+
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [t]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -65,14 +75,6 @@ function AuthPanel() {
     } finally {
       setBusy(false);
     }
-  }
-
-  function googleLogin() {
-    window.open(
-      `${BACKEND_URL}/api/auth/google/start`,
-      "google_oauth",
-      "popup=yes,width=520,height=640",
-    );
   }
 
   return (
@@ -139,15 +141,6 @@ function AuthPanel() {
             disabled={busy}
           >
             {mode === "signup" ? t("auth.signup") : t("auth.login")}
-          </button>
-
-          <button
-            type="button"
-            className="button button--secondary button--small auth-panel__submit"
-            onClick={googleLogin}
-            disabled={busy}
-          >
-            {t("auth.continueWithGoogle")}
           </button>
         </form>
       )}

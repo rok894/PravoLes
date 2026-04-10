@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose:*)",
+      "Bash(where docker:*)",
+      "Bash(\"C:/Program Files/Docker/Docker/resources/bin/docker.exe\" --version)",
+      "Read(//c/Program Files/**)",
+      "Bash(node -e ':*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)"
+    ]
+  }
+}

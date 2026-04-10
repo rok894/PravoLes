@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 enum CartStatus {
@@ -29,7 +29,7 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  title       String
+  title       String   @unique
   description String
   image       String
   alt         String
@@ -134,8 +134,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   email        String   @unique
-  passwordHash String?
-  googleSub    String?  @unique
+  passwordHash String
 
   sessions     Session[]
 }

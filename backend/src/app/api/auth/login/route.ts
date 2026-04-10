@@ -51,10 +51,6 @@ export async function POST(req: Request) {
     return withCors(NextResponse.json({ error: "Invalid credentials" }, { status: 401 }), origin);
   }
 
-  if (!user.passwordHash) {
-    return withCors(NextResponse.json({ error: "Use Google login" }, { status: 409 }), origin);
-  }
-
   const ok = await bcrypt.compare(body.data.password, user.passwordHash);
   if (!ok) {
     return withCors(NextResponse.json({ error: "Invalid credentials" }, { status: 401 }), origin);

@@ -29,13 +29,11 @@
     "switchSignup": "Registrati",
     "switchLogin": "Accedi",
     "loggedInAs": "Accesso come",
-    "continueWithGoogle": "Continua con Google",
     "continueAsGuest": "Continua come ospite",
-    "popupBlocked": "Popup bloccato. Consenti i popup e riprova.",
-    "popupError": "Accesso non riuscito. Riprova.",
+    "dbUnavailable": "Database non disponibile. Avvia Postgres, esegui le migrazioni e ricarica la pagina.",
     "modalEyebrow": "Accedi",
-    "modalTitle": "Accedi con Google",
-    "modalText": "Per continuare, accedi con Gmail oppure procedi come ospite."
+    "modalTitle": "Accedi o registrati",
+    "modalText": "Per continuare, accedi con email oppure procedi come ospite."
   },
   "hero": {
     "eyebrow": "Struttura dinamica della pagina",

@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import ProductShowcase from "./components/ProductShowcase";
 import CartPanel from "./components/CartPanel";
 import { CartProvider } from "./cart";
-import AuthPanel from "./components/AuthPanel";
-import GoogleLoginModal from "./components/GoogleLoginModal";
+import AuthModal from "./components/AuthModal";
+import AuthCorner from "./components/AuthCorner";
 
 type Highlight = { title: string; text: string };
 type AboutPoint = { title: string; text: string };
@@ -48,7 +48,8 @@ function App() {
   return (
     <CartProvider>
       <div className="page-shell">
-        <GoogleLoginModal />
+        <AuthModal />
+        <AuthCorner />
         <header className="hero">
           <div className="hero__eyebrow">{t("hero.eyebrow")}</div>
           <h1>{t("hero.title")}</h1>
@@ -109,7 +110,6 @@ function App() {
             </nav>
 
             <CartPanel />
-            <AuthPanel />
           </aside>
 
         <main className="content">

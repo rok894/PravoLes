@@ -1,9 +1,10 @@
-const BACKEND_URL =
-  (import.meta.env.VITE_BACKEND_URL as string | undefined) ??
-  "http://localhost:3000";
+const BACKEND_URL = ((import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "")
+  .trim()
+  .replace(/\/$/, "");
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BACKEND_URL}${path}`, {
+  const url = BACKEND_URL ? `${BACKEND_URL}${path}` : path;
+  const res = await fetch(url, {
     ...init,
     credentials: "include",
     headers: {
