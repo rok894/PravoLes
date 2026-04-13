@@ -1,25 +1,44 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-
+import { fetchJson } from "../api";
 import { useCart } from "../cart";
+
+function formatPrice(cents: number, currency: string) {
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
+}
 
 function CartPanel() {
   const { t } = useTranslation();
   const cart = useCart();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const mailtoHref = useMemo(() => {
-    if (cart.items.length === 0) return "mailto:info@pravoles.si";
+  async function handleCheckout() {
+    setBusy(true);
+    setError(null);
+    try {
+      await fetchJson("/api/cart/items", { method: "DELETE", body: "{}" });
+      for (const item of cart.items) {
+        await fetchJson("/api/cart/items", {
+          method: "POST",
+          body: JSON.stringify({ productId: item.product.id, qty: item.qty }),
+        });
+      }
+      const { url } = await fetchJson<{ url: string }>("/api/checkout", {
+        method: "POST",
+      });
+      window.location.href = url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("cart.checkoutError"));
+      setBusy(false);
+    }
+  }
 
-    const lines = cart.items
-      .map((item) => `- ${item.product.title} x ${item.qty}`)
-      .join("\n");
-    const body = `${t("cart.mailtoIntro")}\n\n${lines}\n\n${t("cart.mailtoOutro")}`;
-
-    const subject = t("cart.mailtoSubject");
-    return `mailto:info@pravoles.si?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`;
-  }, [cart.items, t]);
+  const currency = cart.items[0]?.product.currency ?? "EUR";
 
   return (
     <section className="cart-panel" aria-label={t("cart.title")}>
@@ -43,11 +62,12 @@ function CartPanel() {
       ) : (
         <div className="cart-panel__items">
           {cart.items.map((item) => (
-            <div className="cart-panel__item" key={item.product.title}>
+            <div className="cart-panel__item" key={item.product.id}>
               <div className="cart-panel__item-main">
                 <div className="cart-panel__item-title">{item.product.title}</div>
                 <div className="cart-panel__item-meta">
-                  {t("cart.qty")}: {item.qty}
+                  {t("cart.qty")}: {item.qty} &times;{" "}
+                  {formatPrice(item.product.priceCents, item.product.currency)}
                 </div>
               </div>
               <div className="cart-panel__item-actions">
@@ -61,26 +81,38 @@ function CartPanel() {
                 <button
                   type="button"
                   className="cart-panel__btn"
-                  onClick={() => cart.removeOne(item.product.title)}
+                  onClick={() => cart.removeOne(item.product.id)}
                 >
                   -
                 </button>
                 <button
                   type="button"
                   className="cart-panel__btn cart-panel__btn--danger"
-                  onClick={() => cart.removeAll(item.product.title)}
+                  onClick={() => cart.removeAll(item.product.id)}
                 >
                   {t("cart.remove")}
                 </button>
               </div>
             </div>
           ))}
+
+          <div className="cart-panel__total">
+            <span>{t("cart.total")}</span>
+            <strong>{formatPrice(cart.totalPriceCents, currency)}</strong>
+          </div>
         </div>
       )}
 
-      <a className="cart-panel__checkout" href={mailtoHref}>
-        {t("cart.checkout")}
-      </a>
+      {error && <p className="cart-panel__error">{error}</p>}
+
+      <button
+        type="button"
+        className="cart-panel__checkout"
+        onClick={handleCheckout}
+        disabled={cart.items.length === 0 || busy}
+      >
+        {busy ? "…" : t("cart.payNow")}
+      </button>
     </section>
   );
 }

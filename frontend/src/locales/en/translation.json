@@ -15,6 +15,9 @@
     "clear": "Clear",
     "checkout": "Send inquiry",
     "qty": "Qty",
+    "total": "Total",
+    "payNow": "Pay now",
+    "checkoutError": "Checkout failed. Please try again.",
     "mailtoSubject": "Inquiry - cart",
     "mailtoIntro": "Hello, I'm interested in the following products:",
     "mailtoOutro": "Thanks and best regards."
@@ -34,6 +37,11 @@
     "modalEyebrow": "Sign in",
     "modalTitle": "Log in or sign up",
     "modalText": "To continue, log in with your email or proceed as a guest."
+  },
+  "orders": {
+    "title": "My orders",
+    "myOrders": "My orders",
+    "empty": "You have no orders yet."
   },
   "hero": {
     "eyebrow": "Dynamic page structure",
@@ -106,7 +114,8 @@
   ],
   "productsSection": {
     "eyebrow": "Product selection",
-    "title": "Wooden pieces from the PravoLes workshop"
+    "title": "Wooden pieces from the PravoLes workshop",
+    "unavailable": "Products are currently unavailable."
   },
   "products": [
     {
@@ -137,7 +146,15 @@
   "contact": {
     "eyebrow": "Contact",
     "title": "Write to us for info and custom orders",
-    "note": "For a quick inquiry, email info@pravoles.si and include approximate size, material, and delivery timeframe."
+    "note": "For a quick inquiry, email info@pravoles.si and include approximate size, material, and delivery timeframe.",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "message": "Message",
+    "messagePlaceholder": "Describe your inquiry...",
+    "send": "Send message",
+    "sent": "Thank you! Your message has been sent. We'll get back to you shortly.",
+    "error": "Failed to send. Please try again."
   },
   "contactItems": [
     {

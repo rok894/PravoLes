@@ -15,6 +15,9 @@
     "clear": "Svuota",
     "checkout": "Invia richiesta",
     "qty": "Quantità",
+    "total": "Totale",
+    "payNow": "Paga ora",
+    "checkoutError": "Pagamento fallito. Riprova.",
     "mailtoSubject": "Richiesta - carrello",
     "mailtoIntro": "Ciao, mi interessano i seguenti prodotti:",
     "mailtoOutro": "Grazie e cordiali saluti."
@@ -34,6 +37,11 @@
     "modalEyebrow": "Accedi",
     "modalTitle": "Accedi o registrati",
     "modalText": "Per continuare, accedi con email oppure procedi come ospite."
+  },
+  "orders": {
+    "title": "I miei ordini",
+    "myOrders": "I miei ordini",
+    "empty": "Non hai ancora ordini."
   },
   "hero": {
     "eyebrow": "Struttura dinamica della pagina",
@@ -106,7 +114,8 @@
   ],
   "productsSection": {
     "eyebrow": "Selezione prodotti",
-    "title": "Pezzi in legno dal laboratorio PravoLes"
+    "title": "Pezzi in legno dal laboratorio PravoLes",
+    "unavailable": "Prodotti al momento non disponibili."
   },
   "products": [
     {
@@ -137,7 +146,15 @@
   "contact": {
     "eyebrow": "Contatto",
     "title": "Scrivici per informazioni e ordini su misura",
-    "note": "Per una richiesta rapida, invia un'email a info@pravoles.si indicando dimensioni, materiale e tempi di consegna desiderati."
+    "note": "Per una richiesta rapida, invia un'email a info@pravoles.si indicando dimensioni, materiale e tempi di consegna desiderati.",
+    "name": "Nome",
+    "namePlaceholder": "Il tuo nome",
+    "email": "Email",
+    "message": "Messaggio",
+    "messagePlaceholder": "Descrivi la tua richiesta...",
+    "send": "Invia messaggio",
+    "sent": "Grazie! Il tuo messaggio è stato inviato. Ti risponderemo a breve.",
+    "error": "Errore durante l'invio. Riprova."
   },
   "contactItems": [
     {

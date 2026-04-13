@@ -15,6 +15,9 @@
     "clear": "Počisti",
     "checkout": "Pošlji povpraševanje",
     "qty": "Količina",
+    "total": "Skupaj",
+    "payNow": "Plačaj zdaj",
+    "checkoutError": "Napaka pri plačilu. Poskusite znova.",
     "mailtoSubject": "Povpraševanje - košarica",
     "mailtoIntro": "Pozdravljeni, zanimajo me naslednji izdelki:",
     "mailtoOutro": "Hvala in lep pozdrav."
@@ -34,6 +37,11 @@
     "modalEyebrow": "Prijava",
     "modalTitle": "Prijava ali registracija",
     "modalText": "Za nadaljevanje se prijavi z e-pošto ali nadaljuj kot gost."
+  },
+  "orders": {
+    "title": "Moja naročila",
+    "myOrders": "Moja naročila",
+    "empty": "Še nimate naročil."
   },
   "hero": {
     "eyebrow": "Dinamična struktura strani",
@@ -106,7 +114,8 @@
   ],
   "productsSection": {
     "eyebrow": "Izbor izdelkov",
-    "title": "Leseni kosi iz delavnice PravoLes"
+    "title": "Leseni kosi iz delavnice PravoLes",
+    "unavailable": "Izdelki trenutno niso dosegljivi."
   },
   "products": [
     {
@@ -137,7 +146,15 @@
   "contact": {
     "eyebrow": "Kontakt",
     "title": "Pišite nam za informacije in naročila po meri",
-    "note": "Če želite hitro povpraševanje, pošljite e-pošto na info@pravoles.si in pripišite približno želeno velikost, material in rok dobave."
+    "note": "Če želite hitro povpraševanje, pošljite e-pošto na info@pravoles.si in pripišite približno želeno velikost, material in rok dobave.",
+    "name": "Ime",
+    "namePlaceholder": "Vaše ime",
+    "email": "E-pošta",
+    "message": "Sporočilo",
+    "messagePlaceholder": "Opišite vaše povpraševanje...",
+    "send": "Pošlji sporočilo",
+    "sent": "Hvala! Vaše sporočilo je bilo poslano. Odgovorili vam bomo v kratkem.",
+    "error": "Napaka pri pošiljanju. Poskusite znova."
   },
   "contactItems": [
     {

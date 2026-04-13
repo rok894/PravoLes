@@ -11,12 +11,12 @@ export default defineConfig({
     proxy: {
       // Dev-only: proxy backend routes so auth cookies are same-origin.
       "/api": {
-        target: "http://localhost:3000",
-        changeOrigin: false,
+        target: "http://localhost:3001",
+        changeOrigin: true,
       },
       "/checkout": {
-        target: "http://localhost:3000",
-        changeOrigin: false,
+        target: "http://localhost:3001",
+        changeOrigin: true,
       },
     },
   },

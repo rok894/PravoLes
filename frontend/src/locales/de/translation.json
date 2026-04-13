@@ -15,6 +15,9 @@
     "clear": "Leeren",
     "checkout": "Anfrage senden",
     "qty": "Menge",
+    "total": "Gesamt",
+    "payNow": "Jetzt bezahlen",
+    "checkoutError": "Zahlung fehlgeschlagen. Bitte erneut versuchen.",
     "mailtoSubject": "Anfrage - Warenkorb",
     "mailtoIntro": "Hallo, ich interessiere mich für folgende Produkte:",
     "mailtoOutro": "Danke und freundliche Grüße."
@@ -34,6 +37,11 @@
     "modalEyebrow": "Anmelden",
     "modalTitle": "Anmelden oder registrieren",
     "modalText": "Zum Fortfahren mit E-Mail anmelden oder als Gast weiter."
+  },
+  "orders": {
+    "title": "Meine Bestellungen",
+    "myOrders": "Meine Bestellungen",
+    "empty": "Sie haben noch keine Bestellungen."
   },
   "hero": {
     "eyebrow": "Dynamische Seitenstruktur",
@@ -106,7 +114,8 @@
   ],
   "productsSection": {
     "eyebrow": "Produktauswahl",
-    "title": "Holzstücke aus der PravoLes Werkstatt"
+    "title": "Holzstücke aus der PravoLes Werkstatt",
+    "unavailable": "Produkte sind derzeit nicht verfügbar."
   },
   "products": [
     {
@@ -137,7 +146,15 @@
   "contact": {
     "eyebrow": "Kontakt",
     "title": "Schreiben Sie uns für Infos und Maßanfertigungen",
-    "note": "Für eine schnelle Anfrage senden Sie eine E-Mail an info@pravoles.si und fügen Sie gewünschte Größe, Material und Lieferzeit hinzu."
+    "note": "Für eine schnelle Anfrage senden Sie eine E-Mail an info@pravoles.si und fügen Sie gewünschte Größe, Material und Lieferzeit hinzu.",
+    "name": "Name",
+    "namePlaceholder": "Ihr Name",
+    "email": "E-Mail",
+    "message": "Nachricht",
+    "messagePlaceholder": "Beschreiben Sie Ihre Anfrage...",
+    "send": "Nachricht senden",
+    "sent": "Danke! Ihre Nachricht wurde gesendet. Wir melden uns bald.",
+    "error": "Fehler beim Senden. Bitte erneut versuchen."
   },
   "contactItems": [
     {

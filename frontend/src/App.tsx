@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProductShowcase from "./components/ProductShowcase";
 import CartPanel from "./components/CartPanel";
 import { CartProvider } from "./cart";
 import AuthModal from "./components/AuthModal";
 import AuthCorner from "./components/AuthCorner";
+import ThemeToggle from "./components/ThemeToggle";
+import { fetchJson } from "./api";
 
 type Highlight = { title: string; text: string };
 type AboutPoint = { title: string; text: string };
@@ -19,6 +21,32 @@ type ContactItem = { title: string; text: string };
 function App() {
   const { t, i18n } = useTranslation();
   const [langOpen, setLangOpen] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactBusy, setContactBusy] = useState(false);
+  const [contactDone, setContactDone] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
+
+  async function handleContact(e: FormEvent) {
+    e.preventDefault();
+    setContactBusy(true);
+    setContactError(null);
+    try {
+      await fetchJson("/api/contact", {
+        method: "POST",
+        body: JSON.stringify({ name: contactName, email: contactEmail, message: contactMessage }),
+      });
+      setContactDone(true);
+      setContactName("");
+      setContactEmail("");
+      setContactMessage("");
+    } catch (err) {
+      setContactError(err instanceof Error ? err.message : t("contact.error"));
+    } finally {
+      setContactBusy(false);
+    }
+  }
 
   const languageOptions = [
     { code: "sl", label: "Slovenščina" },
@@ -40,7 +68,6 @@ function App() {
   const galleryItems = t("galleryItems", {
     returnObjects: true,
   }) as GalleryItem[];
-  const products = t("products", { returnObjects: true }) as GalleryItem[];
   const contactItems = t("contactItems", {
     returnObjects: true,
   }) as ContactItem[];
@@ -49,7 +76,10 @@ function App() {
     <CartProvider>
       <div className="page-shell">
         <AuthModal />
-        <AuthCorner />
+        <div className="top-controls">
+          <ThemeToggle />
+          <AuthCorner />
+        </div>
         <header className="hero">
           <div className="hero__eyebrow">{t("hero.eyebrow")}</div>
           <h1>{t("hero.title")}</h1>
@@ -166,7 +196,7 @@ function App() {
           </div>
         </section>
 
-        <ProductShowcase products={products} />
+        <ProductShowcase />
 
         <section className="panel panel--accent" id="kontakt">
           <div className="section-heading">
@@ -183,11 +213,60 @@ function App() {
             ))}
           </div>
 
-          <div className="contact-note">
-            <p>
-              {t("contact.note")} <a href="mailto:info@pravoles.si">info@pravoles.si</a>
-            </p>
-          </div>
+          {contactDone ? (
+            <div className="contact-form contact-form--done">
+              <p>{t("contact.sent")}</p>
+            </div>
+          ) : (
+            <form className="contact-form" onSubmit={handleContact}>
+              <div className="contact-form__row">
+                <label className="contact-form__field">
+                  <span>{t("contact.name")}</span>
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder={t("contact.namePlaceholder")}
+                    required
+                    maxLength={120}
+                    disabled={contactBusy}
+                  />
+                </label>
+                <label className="contact-form__field">
+                  <span>{t("contact.email")}</span>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    disabled={contactBusy}
+                  />
+                </label>
+              </div>
+              <label className="contact-form__field">
+                <span>{t("contact.message")}</span>
+                <textarea
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  placeholder={t("contact.messagePlaceholder")}
+                  required
+                  minLength={5}
+                  maxLength={2000}
+                  rows={5}
+                  disabled={contactBusy}
+                />
+              </label>
+              {contactError && <p className="contact-form__error">{contactError}</p>}
+              <button
+                type="submit"
+                className="button button--primary"
+                disabled={contactBusy}
+              >
+                {contactBusy ? "…" : t("contact.send")}
+              </button>
+            </form>
+          )}
         </section>
           </main>
         </div>

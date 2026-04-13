@@ -1,13 +1,20 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchJson } from "../api";
+import OrderHistory from "./OrderHistory";
 
 type User = { id: string; email: string };
+
+const AVATAR_PALETTE = ["#5c4a3a", "#7c5e45", "#a0785a", "#6b5244", "#8b6b52", "#4a3728"];
+function avatarColor(email: string) {
+  return AVATAR_PALETTE[email.charCodeAt(0) % AVATAR_PALETTE.length];
+}
 
 function AuthCorner() {
   const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +32,8 @@ function AuthCorner() {
   }
 
   useEffect(() => { refreshMe(); }, []);
+
+  useEffect(() => { setOpen(false); }, [user]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -68,14 +77,41 @@ function AuthCorner() {
   }
 
   return (
+    <>
+    {ordersOpen && <OrderHistory onClose={() => setOrdersOpen(false)} />}
     <div className="auth-corner" ref={ref}>
       {user ? (
-        <div className="auth-corner__user">
-          <span className="auth-corner__email">{user.email}</span>
-          <button type="button" className="auth-corner__btn" onClick={logout} disabled={busy}>
-            {t("auth.logout")}
+        <>
+          <button
+            type="button"
+            className="auth-corner__avatar"
+            style={{ background: avatarColor(user.email) }}
+            onClick={() => setOpen((v) => !v)}
+            aria-label={user.email}
+          >
+            {user.email[0].toUpperCase()}
           </button>
-        </div>
+          {open && (
+            <div className="auth-corner__dropdown auth-corner__dropdown--user">
+              <p className="auth-corner__who">{user.email}</p>
+              <button
+                type="button"
+                className="auth-corner__logout"
+                onClick={() => { setOpen(false); setOrdersOpen(true); }}
+              >
+                {t("orders.myOrders")}
+              </button>
+              <button
+                type="button"
+                className="auth-corner__logout"
+                onClick={logout}
+                disabled={busy}
+              >
+                {t("auth.logout")}
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <>
           <button
@@ -143,6 +179,7 @@ function AuthCorner() {
         </>
       )}
     </div>
+    </>
   );
 }
 

@@ -20,58 +20,61 @@ export function OPTIONS(req: Request) {
 export async function POST(req: Request) {
   const origin = req.headers.get("origin");
 
-  let prisma;
   try {
-    prisma = getPrisma();
-  } catch {
+    let prisma;
+    try {
+      prisma = getPrisma();
+    } catch (e) {
+      console.error("[signup] getPrisma failed:", e);
+      return withCors(
+        NextResponse.json({ error: "Database is not configured" }, { status: 500 }),
+        origin,
+      );
+    }
+
+    const body = schema.safeParse(await req.json().catch(() => null));
+    if (!body.success) {
+      return withCors(NextResponse.json({ error: "Invalid body" }, { status: 400 }), origin);
+    }
+
+    const email = body.data.email.trim().toLowerCase();
+    const passwordHash = await bcrypt.hash(body.data.password, 12);
+
+    let user;
+    try {
+      user = await prisma.user.create({ data: { email, passwordHash } });
+    } catch (e) {
+      console.error("[signup] user.create failed:", e);
+      return withCors(
+        NextResponse.json({ error: "Email already in use" }, { status: 409 }),
+        origin,
+      );
+    }
+
+    const token = makeSessionToken();
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+
+    try {
+      await prisma.session.create({
+        data: { token, userId: user.id, expiresAt },
+      });
+    } catch (e) {
+      console.error("[signup] session.create failed:", e);
+      return withCors(
+        NextResponse.json({ error: "Failed to create session" }, { status: 500 }),
+        origin,
+      );
+    }
+
+    await setSessionCookie(token);
+
     return withCors(
-      NextResponse.json({ error: "Database is not configured" }, { status: 500 }),
+      NextResponse.json({ user: { id: user.id, email: user.email } }),
       origin,
     );
+  } catch (e) {
+    console.error("[signup] unhandled error:", e);
+    const msg = process.env.NODE_ENV !== "production" && e instanceof Error ? e.message : "Internal server error";
+    return withCors(NextResponse.json({ error: msg }, { status: 500 }), origin);
   }
-
-  const body = schema.safeParse(await req.json().catch(() => null));
-  if (!body.success) {
-    return withCors(NextResponse.json({ error: "Invalid body" }, { status: 400 }), origin);
-  }
-
-  const email = body.data.email.trim().toLowerCase();
-  const passwordHash = await bcrypt.hash(body.data.password, 12);
-
-  let user;
-  try {
-    user = await prisma.user.create({
-      data: { email, passwordHash },
-    });
-  } catch {
-    return withCors(
-      NextResponse.json({ error: "Email already in use" }, { status: 409 }),
-      origin,
-    );
-  }
-
-  const token = makeSessionToken();
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-
-  try {
-    await prisma.session.create({
-      data: {
-        token,
-        userId: user.id,
-        expiresAt,
-      },
-    });
-  } catch {
-    return withCors(
-      NextResponse.json({ error: "Failed to create session" }, { status: 500 }),
-      origin,
-    );
-  }
-
-  await setSessionCookie(token);
-
-  return withCors(
-    NextResponse.json({ user: { id: user.id, email: user.email } }),
-    origin,
-  );
 }
