@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { sendEmail, orderConfirmationHtml } from "@/lib/email";
 import getPrisma from "@/lib/prisma";
 import getStripe from "@/lib/stripe";
 
@@ -58,9 +59,7 @@ export async function POST(req: Request) {
       try {
         await prisma.order.updateMany({
           where: { id: orderId },
-          data: {
-            status: "PAID",
-          },
+          data: { status: "PAID" },
         });
 
         await prisma.payment.updateMany({
@@ -78,6 +77,35 @@ export async function POST(req: Request) {
           { status: 503 },
         );
       }
+
+      // Send order confirmation email
+      try {
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: { items: true },
+        });
+        if (order?.customerEmail) {
+          await sendEmail(
+            order.customerEmail,
+            "Potrdilo naročila — PravoLes",
+            orderConfirmationHtml({
+              email: order.customerEmail,
+              orderId: order.id,
+              items: order.items.map((i) => ({
+                title: i.title,
+                qty: i.qty,
+                priceCents: i.priceCents,
+              })),
+              totalCents: order.totalCents,
+              currency: order.currency,
+            }),
+          );
+        }
+      } catch (emailErr) {
+        // Email failure must not affect webhook response
+        console.error("[webhook] order email failed:", emailErr);
+      }
+
       break;
     }
 

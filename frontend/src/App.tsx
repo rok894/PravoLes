@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProductShowcase from "./components/ProductShowcase";
 import CartPanel from "./components/CartPanel";
@@ -6,7 +6,11 @@ import { CartProvider } from "./cart";
 import AuthModal from "./components/AuthModal";
 import AuthCorner from "./components/AuthCorner";
 import ThemeToggle from "./components/ThemeToggle";
+import CookieBanner from "./components/CookieBanner";
+import MobileCartFab from "./components/MobileCartFab";
+import PasswordResetModal from "./components/PasswordResetModal";
 import { fetchJson } from "./api";
+import { useToast } from "./ToastContext";
 
 type Highlight = { title: string; text: string };
 type AboutPoint = { title: string; text: string };
@@ -20,40 +24,96 @@ type ContactItem = { title: string; text: string };
 
 function App() {
   const { t, i18n } = useTranslation();
+  const { addToast } = useToast();
   const [langOpen, setLangOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement | null>(null);
+  const [resetToken, setResetToken] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("reset_token");
+  });
+
+  useEffect(() => {
+    if (resetToken) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("reset_token");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [resetToken]);
+
+  useEffect(() => {
+    document.documentElement.lang = i18n.resolvedLanguage?.split("-")[0] ?? "sl";
+  }, [i18n.resolvedLanguage]);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      setLangOpen(false);
+      setMobileNavOpen(false);
+    }
+
+    function onPointerDown(e: PointerEvent) {
+      if (!langOpen) return;
+      const root = langMenuRef.current;
+      if (!root) return;
+      if (e.target instanceof Node && root.contains(e.target)) return;
+      setLangOpen(false);
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [langOpen]);
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
+  const [contactWebsite, setContactWebsite] = useState("");
   const [contactBusy, setContactBusy] = useState(false);
   const [contactDone, setContactDone] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
 
   async function handleContact(e: FormEvent) {
     e.preventDefault();
+    if (contactWebsite.trim()) return;
     setContactBusy(true);
     setContactError(null);
     try {
       await fetchJson("/api/contact", {
         method: "POST",
-        body: JSON.stringify({ name: contactName, email: contactEmail, message: contactMessage }),
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          message: contactMessage,
+          website: contactWebsite,
+        }),
       });
       setContactDone(true);
       setContactName("");
       setContactEmail("");
       setContactMessage("");
+      setContactWebsite("");
+      addToast(t("contact.sent"), "success");
     } catch (err) {
       setContactError(err instanceof Error ? err.message : t("contact.error"));
+      addToast(err instanceof Error ? err.message : t("contact.error"), "error");
     } finally {
       setContactBusy(false);
     }
   }
 
-  const languageOptions = [
+  const languageOptions = useMemo(() => [
     { code: "sl", label: "Slovenščina" },
     { code: "en", label: "English" },
     { code: "de", label: "Deutsch" },
     { code: "it", label: "Italiano" },
-  ];
+  ], []);
+
+  const currentLanguageLabel =
+    languageOptions.find((l) => i18n.language.startsWith(l.code))?.label ??
+    i18n.language;
 
   const navLinks = [
     { href: "#vsebina", label: t("nav.vsebina") },
@@ -75,17 +135,59 @@ function App() {
   return (
     <CartProvider>
       <div className="page-shell">
+        <a className="skip-link" href="#main">
+          {t("common.skipToContent")}
+        </a>
         <AuthModal />
         <div className="top-controls">
           <ThemeToggle />
           <AuthCorner />
         </div>
+
+        <button
+          type="button"
+          className="hamburger-btn"
+          aria-label={t("common.openNav")}
+          aria-expanded={mobileNavOpen}
+          onClick={() => setMobileNavOpen(true)}
+        >
+          <span /><span /><span />
+        </button>
+
+        {mobileNavOpen && (
+          <div
+            className="mobile-nav-overlay"
+            onClick={(e) => { if (e.target === e.currentTarget) setMobileNavOpen(false); }}
+          >
+            <nav className="mobile-nav-drawer">
+              <button
+                type="button"
+                className="mobile-nav-drawer__close"
+                aria-label={t("common.closeNav")}
+                onClick={() => setMobileNavOpen(false)}
+              >
+                ✕
+              </button>
+              <div className="mobile-nav-drawer__heading">{t("navTitle")}</div>
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="mobile-nav-drawer__link"
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+        )}
         <header className="hero">
           <div className="hero__eyebrow">{t("hero.eyebrow")}</div>
           <h1>{t("hero.title")}</h1>
           <p className="hero__lead">{t("hero.lead")}</p>
 
-        <div className="lang-menu" aria-label="Language switcher">
+        <div className="lang-menu" ref={langMenuRef} aria-label={t("common.language")}>
           <button
             type="button"
             className="lang-menu__toggle"
@@ -93,14 +195,16 @@ function App() {
             aria-expanded={langOpen}
             aria-haspopup="listbox"
           >
-            Language
+            {t("common.language")}: {currentLanguageLabel}
           </button>
           {langOpen && (
-            <div className="lang-menu__list">
+            <div className="lang-menu__list" role="listbox" aria-label={t("common.language")}>
               {languageOptions.map((lang) => (
                 <button
                   key={lang.code}
                   type="button"
+                  role="option"
+                  aria-selected={i18n.language.startsWith(lang.code)}
                   className={
                     i18n.language.startsWith(lang.code)
                       ? "lang-menu__item lang-menu__item--active"
@@ -119,7 +223,7 @@ function App() {
         </div>
 
         <div className="hero__actions">
-          <a className="button button--primary" href="#vsebina">
+          <a className="button button--primary" href="#products">
             {t("hero.primaryCta")}
           </a>
           <a className="button button--secondary" href="#kontakt">
@@ -142,7 +246,7 @@ function App() {
             <CartPanel />
           </aside>
 
-        <main className="content">
+        <main className="content" id="main">
         <section className="panel" id="vsebina">
           <div className="section-heading">
             <span>{t("structure.eyebrow")}</span>
@@ -219,6 +323,16 @@ function App() {
             </div>
           ) : (
             <form className="contact-form" onSubmit={handleContact}>
+              <label className="contact-form__field contact-form__hp" aria-hidden="true">
+                <span>Website</span>
+                <input
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={contactWebsite}
+                  onChange={(e) => setContactWebsite(e.target.value)}
+                />
+              </label>
               <div className="contact-form__row">
                 <label className="contact-form__field">
                   <span>{t("contact.name")}</span>
@@ -271,6 +385,11 @@ function App() {
           </main>
         </div>
       </div>
+      <MobileCartFab />
+      <CookieBanner />
+      {resetToken && (
+        <PasswordResetModal token={resetToken} onDone={() => setResetToken(null)} />
+      )}
     </CartProvider>
   );
 }

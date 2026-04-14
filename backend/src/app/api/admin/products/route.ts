@@ -32,8 +32,6 @@ const createSchema = z.object({
   active: z.boolean().default(true),
 });
 
-const updateSchema = createSchema.partial();
-
 export function OPTIONS(req: Request) {
   return corsPreflight(req.headers.get("origin"));
 }

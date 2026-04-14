@@ -138,6 +138,18 @@ model ContactMessage {
   read      Boolean  @default(false)
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  token     String   @unique
+  email     String
+  used      Boolean  @default(false)
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
 model User {
   id           String   @id @default(cuid())
   createdAt    DateTime @default(now())

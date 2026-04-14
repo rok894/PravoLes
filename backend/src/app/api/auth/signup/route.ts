@@ -5,6 +5,7 @@ import { z } from "zod";
 import { corsPreflight, withCors } from "@/lib/cors";
 import getPrisma from "@/lib/prisma";
 import { makeSessionToken, setSessionCookie } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,14 @@ export function OPTIONS(req: Request) {
 
 export async function POST(req: Request) {
   const origin = req.headers.get("origin");
+
+  const ip = getClientIp(req);
+  if (!checkRateLimit(`signup:${ip}`, 5, 60_000)) {
+    return withCors(
+      NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 }),
+      origin,
+    );
+  }
 
   try {
     let prisma;

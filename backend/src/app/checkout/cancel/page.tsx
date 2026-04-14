@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const dynamic = "force-dynamic";
 
 export default function CancelPage() {
@@ -18,13 +20,12 @@ export default function CancelPage() {
             <h2>Vrnitev</h2>
           </div>
           <p style={{ marginTop: 14, color: "#544237", lineHeight: 1.6 }}>
-            <a className="cart__checkout" href="/">
+            <Link className="cart__checkout" href="/">
               Nazaj na izdelke
-            </a>
+            </Link>
           </p>
         </main>
       </div>
     </div>
   );
 }
-

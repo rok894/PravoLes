@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type Product = {
   id: string;
@@ -99,7 +100,7 @@ export default function AdminPage() {
     setEditId(null);
   }
 
-  async function addProduct(e: React.FormEvent) {
+  async function addProduct(e: { preventDefault(): void }) {
     e.preventDefault();
     setSaving(true);
     try {
@@ -133,13 +134,26 @@ export default function AdminPage() {
     setMessages((prev) => prev.map((m) => m.id === id ? { ...m, read: true } : m));
   }
 
+  async function deleteMessage(id: string) {
+    if (!confirm("Izbriši sporočilo?")) return;
+    await fetch("/api/admin/messages", {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+  }
+
   const unread = messages.filter((m) => !m.read).length;
 
   return (
     <div style={{ minHeight: "100vh", background: "#f7f1ea", fontFamily: "Arial, sans-serif", color: "#1f1812" }}>
       <header style={{ background: "#2f2117", color: "#f7f0e7", padding: "18px 32px", display: "flex", alignItems: "center", gap: 20 }}>
         <strong style={{ fontSize: "1.2rem" }}>PravoLes Admin</strong>
-        <a href="/" style={{ color: "#c8a882", fontSize: "0.85rem", marginLeft: "auto" }}>← Nazaj na stran</a>
+        <Link href="/" style={{ color: "#c8a882", fontSize: "0.85rem", marginLeft: "auto" }}>
+          ← Nazaj na stran
+        </Link>
       </header>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 16px" }}>
@@ -147,7 +161,7 @@ export default function AdminPage() {
           <p>Nalaganje…</p>
         ) : error ? (
           <div style={{ background: "#ffe0e0", border: "1px solid #f0a0a0", borderRadius: 10, padding: "16px 20px", color: "#8b2020" }}>
-            {error} — <a href="/api/auth/login" style={{ color: "#8b2020" }}>Prijava</a>
+            {error} — <a href={process.env.NEXT_PUBLIC_FRONTEND_URL ?? "/"} style={{ color: "#8b2020" }}>Pojdi na prijavo</a>
           </div>
         ) : (
           <>
@@ -285,6 +299,9 @@ export default function AdminPage() {
                             Prebrano
                           </button>
                         )}
+                        <button onClick={() => deleteMessage(m.id)} style={{ padding: "3px 10px", borderRadius: 6, background: "#f0e0e0", color: "#8b2020", border: "none", cursor: "pointer", fontSize: "0.75rem" }}>
+                          Izbriši
+                        </button>
                       </div>
                     </div>
                     <p style={{ margin: 0, color: "#1f1812", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{m.message}</p>

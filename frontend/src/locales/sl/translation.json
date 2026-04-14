@@ -7,16 +7,26 @@
     "contact": "Kontakt"
   },
   "navTitle": "Sekcije",
+  "common": {
+    "language": "Jezik",
+    "close": "Zapri",
+    "skipToContent": "Preskoči na vsebino",
+    "openNav": "Odpri navigacijo",
+    "closeNav": "Zapri navigacijo"
+  },
   "cart": {
     "title": "Košarica",
     "empty": "Košarica je prazna. Dodajte izdelek.",
     "add": "Dodaj v košarico",
+    "added": "Dodano v košarico",
     "remove": "Odstrani",
     "clear": "Počisti",
     "checkout": "Pošlji povpraševanje",
     "qty": "Količina",
     "total": "Skupaj",
     "payNow": "Plačaj zdaj",
+    "decreaseQty": "Zmanjšaj količino",
+    "increaseQty": "Povečaj količino",
     "checkoutError": "Napaka pri plačilu. Poskusite znova.",
     "mailtoSubject": "Povpraševanje - košarica",
     "mailtoIntro": "Pozdravljeni, zanimajo me naslednji izdelki:",
@@ -33,7 +43,14 @@
     "switchLogin": "Prijava",
     "loggedInAs": "Prijavljeni kot",
     "continueAsGuest": "Nadaljuj kot gost",
-    "dbUnavailable": "Baza ni dosegljiva. ZaĹľeni Postgres in migracije, nato osveĹľi stran.",
+    "forgotPassword": "Pozabili ste geslo?",
+    "forgotSubmit": "Pošlji navodila",
+    "forgotSent": "Preverite e-pošto. Poslali smo vam povezavo za ponastavitev gesla.",
+    "resetTitle": "Novo geslo",
+    "resetSubmit": "Ponastavi geslo",
+    "resetDone": "Geslo je bilo posodobljeno. Prijavite se.",
+    "resetInvalid": "Povezava je neveljavna ali je že potekla.",
+    "dbUnavailable": "Baza ni dosegljiva. Zaženi Postgres in migracije, nato osveži stran.",
     "modalEyebrow": "Prijava",
     "modalTitle": "Prijava ali registracija",
     "modalText": "Za nadaljevanje se prijavi z e-pošto ali nadaljuj kot gost."
@@ -44,15 +61,15 @@
     "empty": "Še nimate naročil."
   },
   "hero": {
-    "eyebrow": "Dinamična struktura strani",
+    "eyebrow": "Ročna lesena dela",
     "title": "PravoLes",
-    "lead": "Preprosta in elegantna osnova za statično spletno stran, zgrajeno z Vite, React in TypeScript.",
-    "primaryCta": "Poglej strukturo",
+    "lead": "Unikatni leseni kosi iz slovenskega lesa — stoli, predalčniki in predmeti po meri iz delavnice PravoLes.",
+    "primaryCta": "Oglejte si izdelke",
     "secondaryCta": "Kontakt"
   },
   "structure": {
-    "eyebrow": "Osnova projekta",
-    "title": "Kaj je trenutno vključeno"
+    "eyebrow": "Zakaj PravoLes",
+    "title": "Kar nas odlikuje"
   },
   "highlights": [
     {
@@ -115,7 +132,8 @@
   "productsSection": {
     "eyebrow": "Izbor izdelkov",
     "title": "Leseni kosi iz delavnice PravoLes",
-    "unavailable": "Izdelki trenutno niso dosegljivi."
+    "unavailable": "Izdelki trenutno niso dosegljivi.",
+    "details": "Podrobnosti"
   },
   "products": [
     {
@@ -155,6 +173,12 @@
     "send": "Pošlji sporočilo",
     "sent": "Hvala! Vaše sporočilo je bilo poslano. Odgovorili vam bomo v kratkem.",
     "error": "Napaka pri pošiljanju. Poskusite znova."
+  },
+  "cookie": {
+    "title": "Piškotki",
+    "text": "Ta stran uporablja piškotke za delovanje košarice in prijave. Nadaljnja uporaba pomeni strinjanje.",
+    "accept": "Sprejmi",
+    "decline": "Zavrni"
   },
   "contactItems": [
     {

@@ -22,34 +22,21 @@ export default async function Home() {
     );
   }
 
+  let products: Awaited<ReturnType<ReturnType<typeof getPrisma>["product"]["findMany"]>> | null =
+    null;
+  let dbOk = true;
+
   try {
     const prisma = getPrisma();
-    const products = await prisma.product.findMany({
+    products = await prisma.product.findMany({
       where: { active: true },
       orderBy: { createdAt: "asc" },
     });
-
-    return (
-      <div className="shell">
-        <header className="topbar">
-          <div className="brand">
-            <div className="brand__eyebrow">Leseni izdelki</div>
-            <h1>PravoLes</h1>
-            <p>Košarica se shranjuje v bazo in je vezana na cookie.</p>
-          </div>
-        </header>
-
-        <div className="layout">
-          <main className="main">
-            <ProductGrid products={products} />
-          </main>
-          <aside className="aside">
-            <CartSidebar />
-          </aside>
-        </div>
-      </div>
-    );
   } catch {
+    dbOk = false;
+  }
+
+  if (!dbOk || !products) {
     return (
       <div className="shell">
         <header className="topbar">
@@ -66,4 +53,25 @@ export default async function Home() {
       </div>
     );
   }
+
+  return (
+    <div className="shell">
+      <header className="topbar">
+        <div className="brand">
+          <div className="brand__eyebrow">Leseni izdelki</div>
+          <h1>PravoLes</h1>
+          <p>Košarica se shranjuje v bazo in je vezana na cookie.</p>
+        </div>
+      </header>
+
+      <div className="layout">
+        <main className="main">
+          <ProductGrid products={products} />
+        </main>
+        <aside className="aside">
+          <CartSidebar />
+        </aside>
+      </div>
+    </div>
+  );
 }

@@ -7,16 +7,26 @@
     "contact": "Contatto"
   },
   "navTitle": "Sezioni",
+  "common": {
+    "language": "Lingua",
+    "close": "Chiudi",
+    "skipToContent": "Vai al contenuto",
+    "openNav": "Apri navigazione",
+    "closeNav": "Chiudi navigazione"
+  },
   "cart": {
     "title": "Carrello",
     "empty": "Il carrello è vuoto. Aggiungi un prodotto.",
     "add": "Aggiungi al carrello",
+    "added": "Aggiunto al carrello",
     "remove": "Rimuovi",
     "clear": "Svuota",
     "checkout": "Invia richiesta",
     "qty": "Quantità",
     "total": "Totale",
     "payNow": "Paga ora",
+    "decreaseQty": "Diminuisci quantità",
+    "increaseQty": "Aumenta quantità",
     "checkoutError": "Pagamento fallito. Riprova.",
     "mailtoSubject": "Richiesta - carrello",
     "mailtoIntro": "Ciao, mi interessano i seguenti prodotti:",
@@ -33,6 +43,13 @@
     "switchLogin": "Accedi",
     "loggedInAs": "Accesso come",
     "continueAsGuest": "Continua come ospite",
+    "forgotPassword": "Password dimenticata?",
+    "forgotSubmit": "Invia link",
+    "forgotSent": "Controlla l'email. Ti abbiamo inviato un link per reimpostare la password.",
+    "resetTitle": "Nuova password",
+    "resetSubmit": "Reimposta password",
+    "resetDone": "Password aggiornata. Effettua il login.",
+    "resetInvalid": "Il link non è valido o è scaduto.",
     "dbUnavailable": "Database non disponibile. Avvia Postgres, esegui le migrazioni e ricarica la pagina.",
     "modalEyebrow": "Accedi",
     "modalTitle": "Accedi o registrati",
@@ -44,15 +61,15 @@
     "empty": "Non hai ancora ordini."
   },
   "hero": {
-    "eyebrow": "Struttura dinamica della pagina",
+    "eyebrow": "Lavorazione artigianale del legno",
     "title": "PravoLes",
-    "lead": "Una base calma ed elegante per un sito statico, costruito con Vite, React e TypeScript.",
-    "primaryCta": "Vedi struttura",
+    "lead": "Pezzi unici in legno sloveno — sedie, cassettiere e oggetti su misura dal laboratorio PravoLes.",
+    "primaryCta": "Vedi prodotti",
     "secondaryCta": "Contatto"
   },
   "structure": {
-    "eyebrow": "Base del progetto",
-    "title": "Cosa è incluso ora"
+    "eyebrow": "Perché PravoLes",
+    "title": "Cosa ci contraddistingue"
   },
   "highlights": [
     {
@@ -115,7 +132,8 @@
   "productsSection": {
     "eyebrow": "Selezione prodotti",
     "title": "Pezzi in legno dal laboratorio PravoLes",
-    "unavailable": "Prodotti al momento non disponibili."
+    "unavailable": "Prodotti al momento non disponibili.",
+    "details": "Dettagli"
   },
   "products": [
     {
@@ -155,6 +173,12 @@
     "send": "Invia messaggio",
     "sent": "Grazie! Il tuo messaggio è stato inviato. Ti risponderemo a breve.",
     "error": "Errore durante l'invio. Riprova."
+  },
+  "cookie": {
+    "title": "Cookie",
+    "text": "Questo sito usa cookie per il carrello e il login. L'uso continuato implica il consenso.",
+    "accept": "Accetta",
+    "decline": "Rifiuta"
   },
   "contactItems": [
     {

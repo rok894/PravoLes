@@ -7,12 +7,13 @@ type User = { id: string; email: string };
 
 function AuthPanel() {
   const { t } = useTranslation();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   async function refreshMe() {
     try {
@@ -29,34 +30,32 @@ function AuthPanel() {
     refreshMe();
   }, []);
 
-  useEffect(() => {
-    function onMessage(evt: MessageEvent) {
-      // No popup-based auth.
-      void evt;
-    }
-
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, [t]);
-
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setBusy(true);
     try {
-      if (mode === "signup") {
+      if (mode === "forgot") {
+        await fetchJson("/api/auth/forgot-password", {
+          method: "POST",
+          body: JSON.stringify({ email }),
+        });
+        setForgotSent(true);
+      } else if (mode === "signup") {
         await fetchJson("/api/auth/signup", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
+        setPassword("");
+        await refreshMe();
       } else {
         await fetchJson("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
+        setPassword("");
+        await refreshMe();
       }
-      setPassword("");
-      await refreshMe();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -94,10 +93,14 @@ function AuthPanel() {
           <button
             type="button"
             className="auth-panel__link"
-            onClick={() => setMode((m) => (m === "login" ? "signup" : "login"))}
+            onClick={() => {
+              setMode((m) => (m === "login" || m === "forgot" ? "signup" : "login"));
+              setError(null);
+              setForgotSent(false);
+            }}
             disabled={busy}
           >
-            {mode === "login" ? t("auth.switchSignup") : t("auth.switchLogin")}
+            {mode === "signup" ? t("auth.switchLogin") : t("auth.switchSignup")}
           </button>
         )}
       </div>
@@ -106,6 +109,39 @@ function AuthPanel() {
         <p className="auth-panel__who">
           {t("auth.loggedInAs")} <strong>{user.email}</strong>
         </p>
+      ) : mode === "forgot" ? (
+        forgotSent ? (
+          <p className="auth-panel__info">{t("auth.forgotSent")}</p>
+        ) : (
+          <form className="auth-panel__form" onSubmit={onSubmit}>
+            <label className="auth-panel__field">
+              <span>{t("auth.email")}</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
+            </label>
+            {error && <p className="auth-panel__error">{error}</p>}
+            <button
+              type="submit"
+              className="button button--primary button--small auth-panel__submit"
+              disabled={busy}
+            >
+              {busy ? "…" : t("auth.forgotSubmit")}
+            </button>
+            <button
+              type="button"
+              className="auth-panel__link auth-panel__link--sm"
+              onClick={() => { setMode("login"); setError(null); }}
+            >
+              ← {t("auth.login")}
+            </button>
+          </form>
+        )
       ) : (
         <form className="auth-panel__form" onSubmit={onSubmit}>
           <label className="auth-panel__field">
@@ -120,27 +156,53 @@ function AuthPanel() {
             />
           </label>
 
-          <label className="auth-panel__field">
-            <span>{t("auth.password")}</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="********"
-              required
-              minLength={8}
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
-            />
-          </label>
+          {mode === "login" && (
+            <label className="auth-panel__field">
+              <span>
+                {t("auth.password")}
+                <button
+                  type="button"
+                  className="auth-panel__link auth-panel__link--inline"
+                  onClick={() => { setMode("forgot"); setError(null); }}
+                >
+                  {t("auth.forgotPassword")}
+                </button>
+              </span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="********"
+                required
+                minLength={8}
+                autoComplete="current-password"
+              />
+            </label>
+          )}
 
-          {error ? <p className="auth-panel__error">{error}</p> : null}
+          {mode === "signup" && (
+            <label className="auth-panel__field">
+              <span>{t("auth.password")}</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="********"
+                required
+                minLength={8}
+                autoComplete="new-password"
+              />
+            </label>
+          )}
+
+          {error && <p className="auth-panel__error">{error}</p>}
 
           <button
             type="submit"
             className="button button--primary button--small auth-panel__submit"
             disabled={busy}
           >
-            {mode === "signup" ? t("auth.signup") : t("auth.login")}
+            {busy ? "…" : mode === "signup" ? t("auth.signup") : t("auth.login")}
           </button>
         </form>
       )}

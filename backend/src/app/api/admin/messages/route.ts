@@ -67,3 +67,26 @@ export async function PATCH(req: Request) {
     return withCors(NextResponse.json({ error: "Not found" }, { status: 404 }), origin);
   }
 }
+
+export async function DELETE(req: Request) {
+  const origin = req.headers.get("origin");
+  const { error } = await requireAdmin(origin);
+  if (error) return error;
+
+  const body = await req.json().catch(() => null);
+  if (!body?.id) {
+    return withCors(NextResponse.json({ error: "Invalid body" }, { status: 400 }), origin);
+  }
+
+  let prisma;
+  try { prisma = getPrisma(); } catch {
+    return withCors(NextResponse.json({ error: "DB not configured" }, { status: 500 }), origin);
+  }
+
+  try {
+    await prisma.contactMessage.delete({ where: { id: body.id } });
+    return withCors(NextResponse.json({ ok: true }), origin);
+  } catch {
+    return withCors(NextResponse.json({ error: "Not found" }, { status: 404 }), origin);
+  }
+}

@@ -7,16 +7,26 @@
     "contact": "Contact"
   },
   "navTitle": "Sections",
+  "common": {
+    "language": "Language",
+    "close": "Close",
+    "skipToContent": "Skip to content",
+    "openNav": "Open navigation",
+    "closeNav": "Close navigation"
+  },
   "cart": {
     "title": "Cart",
     "empty": "Your cart is empty. Add a product.",
     "add": "Add to cart",
+    "added": "Added to cart",
     "remove": "Remove",
     "clear": "Clear",
     "checkout": "Send inquiry",
     "qty": "Qty",
     "total": "Total",
     "payNow": "Pay now",
+    "decreaseQty": "Decrease quantity",
+    "increaseQty": "Increase quantity",
     "checkoutError": "Checkout failed. Please try again.",
     "mailtoSubject": "Inquiry - cart",
     "mailtoIntro": "Hello, I'm interested in the following products:",
@@ -33,6 +43,13 @@
     "switchLogin": "Log in",
     "loggedInAs": "Logged in as",
     "continueAsGuest": "Continue as guest",
+    "forgotPassword": "Forgot your password?",
+    "forgotSubmit": "Send reset link",
+    "forgotSent": "Check your email. We sent you a password reset link.",
+    "resetTitle": "New password",
+    "resetSubmit": "Reset password",
+    "resetDone": "Password updated. Please log in.",
+    "resetInvalid": "The link is invalid or has expired.",
     "dbUnavailable": "Database is unavailable. Start Postgres and run migrations, then reload.",
     "modalEyebrow": "Sign in",
     "modalTitle": "Log in or sign up",
@@ -44,15 +61,15 @@
     "empty": "You have no orders yet."
   },
   "hero": {
-    "eyebrow": "Dynamic page structure",
+    "eyebrow": "Handcrafted woodwork",
     "title": "PravoLes",
-    "lead": "A calm, elegant base for a static site, built with Vite, React, and TypeScript.",
-    "primaryCta": "See structure",
+    "lead": "Unique wooden pieces from Slovenian wood — chairs, sideboards, and custom objects from the PravoLes workshop.",
+    "primaryCta": "See products",
     "secondaryCta": "Contact"
   },
   "structure": {
-    "eyebrow": "Project base",
-    "title": "What is included now"
+    "eyebrow": "Why PravoLes",
+    "title": "What sets us apart"
   },
   "highlights": [
     {
@@ -115,7 +132,8 @@
   "productsSection": {
     "eyebrow": "Product selection",
     "title": "Wooden pieces from the PravoLes workshop",
-    "unavailable": "Products are currently unavailable."
+    "unavailable": "Products are currently unavailable.",
+    "details": "Details"
   },
   "products": [
     {
@@ -155,6 +173,12 @@
     "send": "Send message",
     "sent": "Thank you! Your message has been sent. We'll get back to you shortly.",
     "error": "Failed to send. Please try again."
+  },
+  "cookie": {
+    "title": "Cookies",
+    "text": "This site uses cookies for the cart and login functionality. Continued use implies consent.",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "contactItems": [
     {

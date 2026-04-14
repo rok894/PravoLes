@@ -7,16 +7,26 @@
     "contact": "Kontakt"
   },
   "navTitle": "Sektionen",
+  "common": {
+    "language": "Sprache",
+    "close": "Schließen",
+    "skipToContent": "Zum Inhalt springen",
+    "openNav": "Navigation öffnen",
+    "closeNav": "Navigation schließen"
+  },
   "cart": {
     "title": "Warenkorb",
     "empty": "Ihr Warenkorb ist leer. Fügen Sie ein Produkt hinzu.",
     "add": "In den Warenkorb",
+    "added": "In den Warenkorb gelegt",
     "remove": "Entfernen",
     "clear": "Leeren",
     "checkout": "Anfrage senden",
     "qty": "Menge",
     "total": "Gesamt",
     "payNow": "Jetzt bezahlen",
+    "decreaseQty": "Menge verringern",
+    "increaseQty": "Menge erhöhen",
     "checkoutError": "Zahlung fehlgeschlagen. Bitte erneut versuchen.",
     "mailtoSubject": "Anfrage - Warenkorb",
     "mailtoIntro": "Hallo, ich interessiere mich für folgende Produkte:",
@@ -33,6 +43,13 @@
     "switchLogin": "Anmelden",
     "loggedInAs": "Angemeldet als",
     "continueAsGuest": "Als Gast fortfahren",
+    "forgotPassword": "Passwort vergessen?",
+    "forgotSubmit": "Link senden",
+    "forgotSent": "E-Mail prüfen. Wir haben Ihnen einen Link zum Zurücksetzen gesendet.",
+    "resetTitle": "Neues Passwort",
+    "resetSubmit": "Passwort zurücksetzen",
+    "resetDone": "Passwort aktualisiert. Bitte anmelden.",
+    "resetInvalid": "Der Link ist ungültig oder abgelaufen.",
     "dbUnavailable": "Datenbank nicht erreichbar. Postgres starten, Migrationen ausführen und neu laden.",
     "modalEyebrow": "Anmelden",
     "modalTitle": "Anmelden oder registrieren",
@@ -44,15 +61,15 @@
     "empty": "Sie haben noch keine Bestellungen."
   },
   "hero": {
-    "eyebrow": "Dynamische Seitenstruktur",
+    "eyebrow": "Handgefertigte Holzarbeiten",
     "title": "PravoLes",
-    "lead": "Eine ruhige, elegante Basis für eine statische Website, gebaut mit Vite, React und TypeScript.",
-    "primaryCta": "Struktur ansehen",
+    "lead": "Einzigartige Holzstücke aus slowenischem Holz — Stühle, Kommoden und Maßanfertigungen aus der PravoLes Werkstatt.",
+    "primaryCta": "Produkte ansehen",
     "secondaryCta": "Kontakt"
   },
   "structure": {
-    "eyebrow": "Projektbasis",
-    "title": "Was derzeit enthalten ist"
+    "eyebrow": "Warum PravoLes",
+    "title": "Was uns auszeichnet"
   },
   "highlights": [
     {
@@ -115,7 +132,8 @@
   "productsSection": {
     "eyebrow": "Produktauswahl",
     "title": "Holzstücke aus der PravoLes Werkstatt",
-    "unavailable": "Produkte sind derzeit nicht verfügbar."
+    "unavailable": "Produkte sind derzeit nicht verfügbar.",
+    "details": "Details"
   },
   "products": [
     {
@@ -155,6 +173,12 @@
     "send": "Nachricht senden",
     "sent": "Danke! Ihre Nachricht wurde gesendet. Wir melden uns bald.",
     "error": "Fehler beim Senden. Bitte erneut versuchen."
+  },
+  "cookie": {
+    "title": "Cookies",
+    "text": "Diese Seite verwendet Cookies für Warenkorb und Login. Die weitere Nutzung gilt als Zustimmung.",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen"
   },
   "contactItems": [
     {
