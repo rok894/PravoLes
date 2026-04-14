@@ -161,6 +161,10 @@
       "alt": "AI visualization of a wooden worktop"
     }
   ],
+  "image": {
+    "zoom": "Zoom: {{alt}}",
+    "closeZoom": "Close image"
+  },
   "contact": {
     "eyebrow": "Contact",
     "title": "Write to us for info and custom orders",

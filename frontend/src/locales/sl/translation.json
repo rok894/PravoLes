@@ -161,6 +161,10 @@
       "alt": "AI vizualizacija lesene delovne deske"
     }
   ],
+  "image": {
+    "zoom": "Povečaj sliko: {{alt}}",
+    "closeZoom": "Zapri prikaz slike"
+  },
   "contact": {
     "eyebrow": "Kontakt",
     "title": "Pišite nam za informacije in naročila po meri",

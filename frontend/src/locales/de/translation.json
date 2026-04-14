@@ -161,6 +161,10 @@
       "alt": "KI-Visualisierung einer Holz-Arbeitsplatte"
     }
   ],
+  "image": {
+    "zoom": "Bild vergrößern: {{alt}}",
+    "closeZoom": "Bild schließen"
+  },
   "contact": {
     "eyebrow": "Kontakt",
     "title": "Schreiben Sie uns für Infos und Maßanfertigungen",

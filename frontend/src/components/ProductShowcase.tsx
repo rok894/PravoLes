@@ -76,18 +76,13 @@ function ProductShowcase() {
             };
             return (
               <article className="product-card" key={product.id}>
-                <button
-                  type="button"
-                  className="product-card__image product-card__image--btn"
-                  onClick={() => setSelected(product)}
-                  aria-label={product.title}
-                >
+                <div className="product-card__image">
                   <ImageZoom
                     src={product.image}
                     alt={product.alt}
                     caption={product.title}
                   />
-                </button>
+                </div>
                 <div className="product-card__body">
                   <h3 className="product-card__title-link">
                     {product.title}

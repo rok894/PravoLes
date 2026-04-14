@@ -161,6 +161,10 @@
       "alt": "Visualizzazione IA di un piano di lavoro in legno"
     }
   ],
+  "image": {
+    "zoom": "Ingrandisci immagine: {{alt}}",
+    "closeZoom": "Chiudi immagine"
+  },
   "contact": {
     "eyebrow": "Contatto",
     "title": "Scrivici per informazioni e ordini su misura",

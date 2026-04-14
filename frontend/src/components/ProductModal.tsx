@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useCart } from "../cart";
 import type { CartProduct } from "../cart";
 import { useToast } from "../ToastContext";
+import ImageZoom from "./ImageZoom";
 
 type Props = {
   product: CartProduct & { alt: string };
@@ -52,20 +53,18 @@ export default function ProductModal({ product, onClose }: Props) {
           ✕
         </button>
 
-        <div className="product-modal__image-wrap">
-          <img
-            src={product.image}
-            alt={product.alt}
-            className="product-modal__image"
-          />
+        <div className="product-modal__left">
+          <div className="product-modal__image-wrap">
+            <ImageZoom src={product.image} alt={product.alt} />
+          </div>
+          <div className="product-modal__image-footer">
+            {formatPrice(product.priceCents * qty, product.currency)}
+          </div>
         </div>
 
         <div className="product-modal__body">
           <h2 className="product-modal__title">{product.title}</h2>
           <p className="product-modal__desc">{product.description}</p>
-          <div className="product-modal__price">
-            {formatPrice(product.priceCents * qty, product.currency)}
-          </div>
           <div className="product-modal__qty">
             <button
               type="button"

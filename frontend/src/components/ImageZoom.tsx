@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
 type ImageZoomProps = {
   src: string;
@@ -8,14 +9,20 @@ type ImageZoomProps = {
 };
 
 function ImageZoom({ src, alt, caption }: ImageZoomProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = originalOverflow;
+      document.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
@@ -25,7 +32,7 @@ function ImageZoom({ src, alt, caption }: ImageZoomProps) {
         type="button"
         className="zoom-trigger"
         onClick={() => setOpen(true)}
-        aria-label={`Povečaj sliko: ${alt}`}
+        aria-label={t("image.zoom", { alt })}
       >
         <img src={src} alt={alt} loading="lazy" />
       </button>
@@ -36,7 +43,7 @@ function ImageZoom({ src, alt, caption }: ImageZoomProps) {
             <button
               type="button"
               className="lightbox__backdrop"
-              aria-label="Zapri"
+              aria-label={t("common.close")}
               onClick={() => setOpen(false)}
             />
             <div className="lightbox__content">
@@ -46,7 +53,7 @@ function ImageZoom({ src, alt, caption }: ImageZoomProps) {
                 type="button"
                 className="lightbox__close"
                 onClick={() => setOpen(false)}
-                aria-label="Zapri prikaz slike"
+                aria-label={t("image.closeZoom")}
               >
                 ✕
               </button>
