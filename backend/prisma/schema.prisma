@@ -24,6 +24,11 @@ enum PaymentStatus {
   FAILED
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model Product {
   id          String   @id @default(cuid())
   createdAt   DateTime @default(now())
@@ -142,7 +147,7 @@ model PasswordResetToken {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   expiresAt DateTime
-  token     String   @unique
+  tokenHash String   @unique
   email     String
   used      Boolean  @default(false)
 
@@ -151,14 +156,20 @@ model PasswordResetToken {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                    String    @id @default(cuid())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  email        String   @unique
-  passwordHash String
+  email                 String    @unique
+  passwordHash          String
+  role                  Role      @default(USER)
 
-  sessions     Session[]
+  failedLoginAttempts   Int       @default(0)
+  lockedUntil           DateTime?
+
+  sessions              Session[]
+
+  @@index([lockedUntil])
 }
 
 model Session {
@@ -166,11 +177,19 @@ model Session {
   createdAt DateTime @default(now())
   expiresAt DateTime
 
-  token     String   @unique
+  tokenHash String   @unique
 
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model WebhookEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@index([processedAt])
 }

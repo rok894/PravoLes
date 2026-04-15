@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { hashToken } from "@/lib/auth";
 import { corsPreflight, withCors } from "@/lib/cors";
 import getPrisma from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
   }
 
   const resetToken = await prisma.passwordResetToken
-    .findUnique({ where: { token: body.data.token } })
+    .findUnique({ where: { tokenHash: hashToken(body.data.token) } })
     .catch(() => null);
 
   if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {

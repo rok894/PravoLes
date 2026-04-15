@@ -15,7 +15,7 @@ function withCors(
   res.headers.set("Access-Control-Allow-Origin", getAllowedOrigin(requestOrigin));
   res.headers.set("Vary", "Origin");
   res.headers.set("Access-Control-Allow-Credentials", "true");
-  res.headers.set("Access-Control-Allow-Headers", "content-type");
+  res.headers.set("Access-Control-Allow-Headers", "content-type, x-csrf-token");
   res.headers.set("Access-Control-Allow-Methods", allowMethods);
   return res;
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { clearSessionCookie, getSessionTokenFromCookie } from "@/lib/auth";
+import { clearSessionCookie, getSessionTokenFromCookie, hashToken } from "@/lib/auth";
 import { corsPreflight, withCors } from "@/lib/cors";
 import getPrisma from "@/lib/prisma";
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   try {
     const prisma = getPrisma();
-    await prisma.session.deleteMany({ where: { token } });
+    await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   } catch {
     // Cookie is cleared anyway.
   }

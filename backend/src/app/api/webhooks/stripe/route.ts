@@ -47,6 +47,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  // Idempotency: atomically claim this event id. If it already exists, skip.
+  try {
+    await prisma.webhookEvent.create({
+      data: { id: event.id, type: event.type },
+    });
+  } catch {
+    // Duplicate delivery — acknowledge without reprocessing.
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;

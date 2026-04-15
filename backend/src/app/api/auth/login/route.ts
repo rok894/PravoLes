@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { makeSessionToken, setSessionCookie } from "@/lib/auth";
+import { SESSION_TTL_MS, hashToken, makeSessionToken, setSessionCookie } from "@/lib/auth";
 import { corsPreflight, withCors } from "@/lib/cors";
 import getPrisma from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
@@ -13,6 +13,9 @@ const schema = z.object({
   email: z.string().email(),
   password: z.string().min(1).max(200),
 });
+
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60_000;
 
 export function OPTIONS(req: Request) {
   return corsPreflight(req.headers.get("origin"));
@@ -60,20 +63,60 @@ export async function POST(req: Request) {
     }
 
     if (!user) {
+      // Run a dummy bcrypt compare to equalize timing between known and unknown users.
+      await bcrypt.compare(body.data.password, "$2a$12$CwTycUXWue0Thq9StjUM0uJ8.iTt9D2r0VGqE9B9gkrCkC0xhC2gu");
       return withCors(NextResponse.json({ error: "Invalid credentials" }, { status: 401 }), origin);
+    }
+
+    const now = new Date();
+    if (user.lockedUntil && user.lockedUntil > now) {
+      const retrySec = Math.ceil((user.lockedUntil.getTime() - now.getTime()) / 1000);
+      return withCors(
+        NextResponse.json(
+          { error: "Account temporarily locked. Try again later." },
+          { status: 423, headers: { "Retry-After": String(retrySec) } },
+        ),
+        origin,
+      );
     }
 
     const ok = await bcrypt.compare(body.data.password, user.passwordHash);
     if (!ok) {
+      const attempts = user.failedLoginAttempts + 1;
+      const shouldLock = attempts >= MAX_FAILED_ATTEMPTS;
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            failedLoginAttempts: shouldLock ? 0 : attempts,
+            lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_MS) : null,
+          },
+        });
+      } catch (e) {
+        console.error("[login] attempt update failed:", e);
+      }
       return withCors(NextResponse.json({ error: "Invalid credentials" }, { status: 401 }), origin);
     }
 
+    // Success — reset counters.
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { failedLoginAttempts: 0, lockedUntil: null },
+        });
+      } catch (e) {
+        console.error("[login] reset counters failed:", e);
+      }
+    }
+
     const token = makeSessionToken();
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    const tokenHash = hashToken(token);
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
 
     try {
       await prisma.session.create({
-        data: { token, userId: user.id, expiresAt },
+        data: { tokenHash, userId: user.id, expiresAt },
       });
     } catch (e) {
       console.error("[login] session.create failed:", e);
@@ -91,7 +134,6 @@ export async function POST(req: Request) {
     );
   } catch (e) {
     console.error("[login] unhandled error:", e);
-    const msg = process.env.NODE_ENV !== "production" && e instanceof Error ? e.message : "Internal server error";
-    return withCors(NextResponse.json({ error: msg }, { status: 500 }), origin);
+    return withCors(NextResponse.json({ error: "Internal server error" }, { status: 500 }), origin);
   }
 }

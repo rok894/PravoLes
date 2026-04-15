@@ -6,7 +6,7 @@ import getStripe from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   let prisma;
   try {
     prisma = getPrisma();
@@ -101,8 +101,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const origin =
-    process.env.NEXT_PUBLIC_BASE_URL ?? new URL(req.url).origin;
+  // Do not trust the Host header — Stripe success/cancel URLs must come from a trusted env.
+  const origin = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.FRONTEND_ORIGIN;
+  if (!origin || !/^https?:\/\//.test(origin)) {
+    return NextResponse.json(
+      { error: "Server is not configured (missing base URL)" },
+      { status: 500 },
+    );
+  }
 
   let session;
   try {

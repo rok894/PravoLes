@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { corsPreflight, withCors } from "@/lib/cors";
 import getPrisma from "@/lib/prisma";
-import { makeSessionToken, setSessionCookie } from "@/lib/auth";
+import { SESSION_TTL_MS, hashToken, makeSessionToken, setSessionCookie } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
@@ -61,11 +61,12 @@ export async function POST(req: Request) {
     }
 
     const token = makeSessionToken();
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    const tokenHash = hashToken(token);
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
 
     try {
       await prisma.session.create({
-        data: { token, userId: user.id, expiresAt },
+        data: { tokenHash, userId: user.id, expiresAt },
       });
     } catch (e) {
       console.error("[signup] session.create failed:", e);
@@ -83,7 +84,6 @@ export async function POST(req: Request) {
     );
   } catch (e) {
     console.error("[signup] unhandled error:", e);
-    const msg = process.env.NODE_ENV !== "production" && e instanceof Error ? e.message : "Internal server error";
-    return withCors(NextResponse.json({ error: msg }, { status: 500 }), origin);
+    return withCors(NextResponse.json({ error: "Internal server error" }, { status: 500 }), origin);
   }
 }

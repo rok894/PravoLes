@@ -3,6 +3,35 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+let csrfToken: string | null = null;
+async function getCsrfToken() {
+  if (csrfToken) return csrfToken;
+  const res = await fetch("/api/csrf", { credentials: "include" });
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => null)) as { token?: string } | null;
+  csrfToken = data?.token ?? null;
+  return csrfToken;
+}
+
+async function adminFetch(input: string, init: RequestInit = {}) {
+  const method = (init.method ?? "GET").toUpperCase();
+  const headers = new Headers(init.headers);
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const token = await getCsrfToken();
+    if (token) headers.set("x-csrf-token", token);
+  }
+  const res = await fetch(input, { ...init, credentials: "include", headers });
+  if (res.status === 403 && method !== "GET") {
+    csrfToken = null;
+    const fresh = await getCsrfToken();
+    if (fresh) {
+      headers.set("x-csrf-token", fresh);
+      return fetch(input, { ...init, credentials: "include", headers });
+    }
+  }
+  return res;
+}
+
 type Product = {
   id: string;
   title: string;
@@ -51,8 +80,8 @@ export default function AdminPage() {
     setError(null);
     try {
       const [pRes, mRes] = await Promise.all([
-        fetch("/api/admin/products", { credentials: "include" }),
-        fetch("/api/admin/messages", { credentials: "include" }),
+        adminFetch("/api/admin/products"),
+        adminFetch("/api/admin/messages"),
       ]);
       if (pRes.status === 403 || mRes.status === 403) {
         setError("Nimate dostopa. Prijavite se kot admin.");
@@ -73,9 +102,8 @@ export default function AdminPage() {
   useEffect(() => { load(); }, []);
 
   async function toggleActive(p: Product) {
-    await fetch(`/api/admin/products/${p.id}`, {
+    await adminFetch(`/api/admin/products/${p.id}`, {
       method: "PATCH",
-      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ active: !p.active }),
     });
@@ -83,9 +111,8 @@ export default function AdminPage() {
   }
 
   async function saveEdit(id: string) {
-    await fetch(`/api/admin/products/${id}`, {
+    await adminFetch(`/api/admin/products/${id}`, {
       method: "PATCH",
-      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         priceCents: Math.round(parseFloat(editPrice) * 100),
@@ -104,9 +131,8 @@ export default function AdminPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/products", {
+      const res = await adminFetch("/api/admin/products", {
         method: "POST",
-        credentials: "include",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           title: newTitle,
@@ -125,9 +151,8 @@ export default function AdminPage() {
   }
 
   async function markRead(id: string) {
-    await fetch("/api/admin/messages", {
+    await adminFetch("/api/admin/messages", {
       method: "PATCH",
-      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id }),
     });
@@ -136,9 +161,8 @@ export default function AdminPage() {
 
   async function deleteMessage(id: string) {
     if (!confirm("Izbriši sporočilo?")) return;
-    await fetch("/api/admin/messages", {
+    await adminFetch("/api/admin/messages", {
       method: "DELETE",
-      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id }),
     });

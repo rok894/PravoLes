@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { hashToken } from "@/lib/auth";
 import { corsPreflight, withCors } from "@/lib/cors";
 import { sendEmail, passwordResetHtml } from "@/lib/email";
 import getPrisma from "@/lib/prisma";
@@ -49,10 +50,11 @@ export async function POST(req: Request) {
   }
 
   const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
   try {
-    await prisma.passwordResetToken.create({ data: { token, email, expiresAt } });
+    await prisma.passwordResetToken.create({ data: { tokenHash, email, expiresAt } });
   } catch {
     return withCors(NextResponse.json({ error: "DB unavailable" }, { status: 503 }), origin);
   }
