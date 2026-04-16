@@ -9,7 +9,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import CookieBanner from "./components/CookieBanner";
 import MobileCartFab from "./components/MobileCartFab";
 import PasswordResetModal from "./components/PasswordResetModal";
-import { fetchJson } from "./api";
+import { fetchJson, BACKEND_URL } from "./api";
 import { useToast } from "./ToastContext";
 
 type Highlight = { title: string; text: string };
@@ -44,6 +44,31 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = i18n.resolvedLanguage?.split("-")[0] ?? "sl";
   }, [i18n.resolvedLanguage]);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("visit_logged") === "1") return;
+    const params = new URLSearchParams(window.location.search);
+    const utm = params.get("utm_source");
+    const url = BACKEND_URL ? `${BACKEND_URL}/api/visits` : "/api/visits";
+    const payload = JSON.stringify({
+      referrer: document.referrer || null,
+      path: window.location.pathname,
+      source: utm,
+    });
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: "application/json" });
+      navigator.sendBeacon(url, blob);
+    } else {
+      fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: payload,
+        credentials: "include",
+        keepalive: true,
+      }).catch(() => {});
+    }
+    sessionStorage.setItem("visit_logged", "1");
+  }, []);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {

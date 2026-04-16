@@ -197,6 +197,17 @@ function AuthPanel() {
 
           {error && <p className="auth-panel__error">{error}</p>}
 
+          {error && mode === "login" && (
+            <button
+              type="button"
+              className="auth-panel__link auth-panel__link--sm"
+              onClick={() => { setMode("forgot"); setError(null); }}
+              disabled={busy}
+            >
+              {t("auth.forgotPassword")}
+            </button>
+          )}
+
           <button
             type="submit"
             className="button button--primary button--small auth-panel__submit"

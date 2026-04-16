@@ -360,18 +360,25 @@ img {
 }
 
 .button--primary {
-  background: linear-gradient(
-    180deg,
-    var(--accent-grad-top),
-    var(--accent-grad-bottom)
-  );
-  color: var(--accent-contrast);
+  background: linear-gradient(180deg, #d0a67d, #b07a4b);
+  color: #1a120c;
   border-color: var(--ctrl-border-strong);
   box-shadow: 0 14px 32px rgba(47, 33, 23, 0.2);
 }
 
 .button--primary:hover {
   box-shadow: 0 18px 44px rgba(47, 33, 23, 0.24);
+}
+
+.button--ghost {
+  background: var(--badge-bg);
+  color: var(--ink);
+  border-color: var(--badge-border);
+}
+
+.button--ghost:hover {
+  background: var(--ctrl-active-bg);
+  border-color: var(--ctrl-active-border);
 }
 
 .button--secondary {
@@ -849,6 +856,7 @@ img {
   padding: 9px 11px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
+  color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 0.9rem;
 }
@@ -922,6 +930,7 @@ img {
   padding: 10px 12px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
+  color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -1033,6 +1042,7 @@ img {
   padding: 10px 12px;
   border: 1px solid var(--input-border);
   background: var(--input-bg);
+  color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
 }
 

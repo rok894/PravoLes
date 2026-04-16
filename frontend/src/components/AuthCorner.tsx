@@ -20,6 +20,7 @@ function AuthCorner() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   async function refreshMe() {
@@ -57,6 +58,23 @@ function AuthCorner() {
       setPassword("");
       setOpen(false);
       await refreshMe();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendForgot() {
+    if (!email) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await fetchJson("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      setForgotSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -127,14 +145,14 @@ function AuthCorner() {
                 <button
                   type="button"
                   className={mode === "login" ? "auth-corner__tab auth-corner__tab--active" : "auth-corner__tab"}
-                  onClick={() => setMode("login")}
+                  onClick={() => { setMode("login"); setError(null); setForgotSent(false); }}
                 >
                   {t("auth.login")}
                 </button>
                 <button
                   type="button"
                   className={mode === "signup" ? "auth-corner__tab auth-corner__tab--active" : "auth-corner__tab"}
-                  onClick={() => setMode("signup")}
+                  onClick={() => { setMode("signup"); setError(null); setForgotSent(false); }}
                 >
                   {t("auth.signup")}
                 </button>
@@ -166,6 +184,19 @@ function AuthCorner() {
                   />
                 </label>
                 {error && <p className="auth-corner__error">{error}</p>}
+                {forgotSent && (
+                  <p className="auth-panel__info">{t("auth.forgotSent")}</p>
+                )}
+                {error && mode === "login" && !forgotSent && (
+                  <button
+                    type="button"
+                    className="auth-panel__link auth-panel__link--sm"
+                    onClick={sendForgot}
+                    disabled={busy || !email}
+                  >
+                    {t("auth.forgotPassword")}
+                  </button>
+                )}
                 <button
                   type="submit"
                   className="button button--primary button--small"

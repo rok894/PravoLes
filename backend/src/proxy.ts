@@ -6,7 +6,8 @@ import { CSRF_COOKIE, CSRF_HEADER, safeEqual } from "@/lib/csrf";
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 // Webhooks authenticate via provider signatures and must be reachable without a CSRF token.
-const CSRF_EXEMPT_PREFIXES = ["/api/webhooks/"];
+// Visits is a fire-and-forget analytics beacon — no security impact, rate-limited per IP.
+const CSRF_EXEMPT_PREFIXES = ["/api/webhooks/", "/api/visits"];
 
 function corsAllowOrigin(requestOrigin: string | null) {
   const configured = process.env.FRONTEND_ORIGIN ?? "http://localhost:5173";
@@ -23,7 +24,7 @@ function csrfDenied(req: NextRequest) {
   return res;
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (!pathname.startsWith("/api/")) return NextResponse.next();

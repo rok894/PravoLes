@@ -193,3 +193,15 @@ model WebhookEvent {
 
   @@index([processedAt])
 }
+
+model Visit {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  source    String
+  referrer  String?
+  path      String?
+
+  @@index([createdAt])
+  @@index([source])
+}

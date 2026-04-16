@@ -51,6 +51,46 @@ type Message = {
   read: boolean;
 };
 
+type VisitStats = {
+  days: number;
+  total: number;
+  sources: { source: string; count: number }[];
+};
+
+const SOURCE_LABELS: Record<string, string> = {
+  direct: "Neposredno",
+  link: "Druga povezava",
+  facebook: "Facebook",
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  youtube: "YouTube",
+  twitter: "Twitter / X",
+  linkedin: "LinkedIn",
+  pinterest: "Pinterest",
+  reddit: "Reddit",
+  google: "Google",
+  search: "Iskalniki",
+  email: "Email",
+  other: "Ostalo",
+};
+
+const SOURCE_COLORS: Record<string, string> = {
+  direct: "#7c5e45",
+  link: "#a98565",
+  facebook: "#1877f2",
+  instagram: "#e1306c",
+  tiktok: "#010101",
+  youtube: "#ff0000",
+  twitter: "#1da1f2",
+  linkedin: "#0a66c2",
+  pinterest: "#bd081c",
+  reddit: "#ff4500",
+  google: "#34a853",
+  search: "#5f6368",
+  email: "#b07a4b",
+  other: "#999",
+};
+
 function fmt(cents: number, currency: string) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency }).format(cents / 100);
 }
@@ -58,7 +98,9 @@ function fmt(cents: number, currency: string) {
 export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [tab, setTab] = useState<"products" | "messages">("products");
+  const [visits, setVisits] = useState<VisitStats | null>(null);
+  const [visitDays, setVisitDays] = useState(30);
+  const [tab, setTab] = useState<"products" | "messages" | "visits">("products");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,23 +121,36 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const [pRes, mRes] = await Promise.all([
+      const [pRes, mRes, vRes] = await Promise.all([
         adminFetch("/api/admin/products"),
         adminFetch("/api/admin/messages"),
+        adminFetch(`/api/admin/visits?days=${visitDays}`),
       ]);
-      if (pRes.status === 403 || mRes.status === 403) {
+      if (pRes.status === 403 || mRes.status === 403 || vRes.status === 403) {
         setError("Nimate dostopa. Prijavite se kot admin.");
         setLoading(false);
         return;
       }
       const { products } = await pRes.json();
       const { messages } = await mRes.json();
+      const visitData = await vRes.json();
       setProducts(products);
       setMessages(messages);
+      setVisits(visitData);
     } catch {
       setError("Napaka pri nalaganju.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function reloadVisits(days: number) {
+    setVisitDays(days);
+    try {
+      const res = await adminFetch(`/api/admin/visits?days=${days}`);
+      if (res.ok) setVisits(await res.json());
+    } catch {
+      // ignore
     }
   }
 
@@ -202,6 +257,12 @@ export default function AdminPage() {
               >
                 Sporočila {unread > 0 && <span style={{ background: "#c0392b", color: "#fff", borderRadius: 20, padding: "1px 7px", fontSize: "0.75rem", marginLeft: 4 }}>{unread}</span>}
               </button>
+              <button
+                onClick={() => setTab("visits")}
+                style={{ padding: "8px 20px", borderRadius: 8, border: "1px solid #ccc", background: tab === "visits" ? "#2f2117" : "#fff", color: tab === "visits" ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontWeight: 700 }}
+              >
+                Obiski {visits ? `(${visits.total})` : ""}
+              </button>
             </div>
 
             {tab === "products" && (
@@ -303,6 +364,67 @@ export default function AdminPage() {
                   </button>
                 </form>
               </>
+            )}
+
+            {tab === "visits" && (
+              <div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 18, flexWrap: "wrap" }}>
+                  <h2 style={{ margin: 0, fontSize: "1.4rem" }}>
+                    Obiski po viru
+                  </h2>
+                  <span style={{ color: "#7c5e45", fontSize: "0.9rem" }}>
+                    Skupaj <strong>{visits?.total ?? 0}</strong> obiskov v zadnjih {visitDays} dneh
+                  </span>
+                  <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+                    {[7, 30, 90, 365].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => reloadVisits(d)}
+                        style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #c8a882", background: visitDays === d ? "#2f2117" : "#fff", color: visitDays === d ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}
+                      >
+                        {d === 365 ? "1 leto" : `${d} dni`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {!visits || visits.sources.length === 0 ? (
+                  <p style={{ color: "#7c5e45" }}>Še ni zabeleženih obiskov.</p>
+                ) : (
+                  <div style={{ background: "#fff", border: "1px solid #e4d2bf", borderRadius: 12, padding: "20px 24px" }}>
+                    {visits.sources.map((s) => {
+                      const pct = visits.total > 0 ? (s.count / visits.total) * 100 : 0;
+                      const max = visits.sources[0]?.count ?? 1;
+                      const barPct = (s.count / max) * 100;
+                      const color = SOURCE_COLORS[s.source] ?? "#7c5e45";
+                      const label = SOURCE_LABELS[s.source] ?? s.source;
+                      return (
+                        <div key={s.source} style={{ marginBottom: 14 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: "0.88rem" }}>
+                            <span style={{ fontWeight: 700, color: "#1f1812" }}>
+                              <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: color, marginRight: 8, verticalAlign: "middle" }} />
+                              {label}
+                            </span>
+                            <span style={{ color: "#7c5e45" }}>
+                              <strong style={{ color: "#1f1812" }}>{s.count}</strong> &nbsp;({pct.toFixed(1)}%)
+                            </span>
+                          </div>
+                          <div style={{ height: 12, background: "#f1e4d3", borderRadius: 6, overflow: "hidden" }}>
+                            <div
+                              style={{
+                                width: `${barPct}%`,
+                                height: "100%",
+                                background: color,
+                                transition: "width 320ms ease",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             )}
 
             {tab === "messages" && (

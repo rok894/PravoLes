@@ -218,6 +218,17 @@ function AuthModal() {
 
             {error && <p className="auth-modal__error">{error}</p>}
 
+            {error && mode === "login" && (
+              <button
+                type="button"
+                className="auth-panel__link"
+                onClick={() => { setMode("forgot"); setError(null); }}
+                disabled={busy}
+              >
+                {t("auth.forgotPassword")}
+              </button>
+            )}
+
             <div className="auth-modal__actions">
               <button
                 type="submit"
