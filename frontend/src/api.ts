@@ -5,6 +5,26 @@ const BACKEND_URL = ((import.meta.env.VITE_BACKEND_URL as string | undefined) ??
 const DEFAULT_TIMEOUT_MS = 15_000;
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
+const SESSION_STORAGE_KEY = "pravoles_sid";
+
+function getSessionId(): string {
+  try {
+    const existing = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (existing && existing.length >= 8) return existing;
+  } catch {
+    // ignore
+  }
+  const bytes = new Uint8Array(16);
+  (globalThis.crypto ?? window.crypto).getRandomValues(bytes);
+  const sid = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  try {
+    localStorage.setItem(SESSION_STORAGE_KEY, sid);
+  } catch {
+    // ignore
+  }
+  return sid;
+}
+
 let csrfToken: string | null = null;
 let csrfInflight: Promise<string | null> | null = null;
 
@@ -37,6 +57,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.body && !headers.has("content-type")) {
     headers.set("content-type", "application/json");
   }
+  if (!headers.has("x-session-id")) headers.set("x-session-id", getSessionId());
 
   if (WRITE_METHODS.has(method)) {
     const token = await ensureCsrfToken();
@@ -94,4 +115,4 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-export { BACKEND_URL, ensureCsrfToken, fetchJson };
+export { BACKEND_URL, ensureCsrfToken, fetchJson, getSessionId };

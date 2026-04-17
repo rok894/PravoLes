@@ -6,7 +6,7 @@ import getStripe from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_req: Request) {
+export async function POST(req: Request) {
   let prisma;
   try {
     prisma = getPrisma();
@@ -27,7 +27,7 @@ export async function POST(_req: Request) {
   }
   let cartId;
   try {
-    cartId = await getOrCreateCartId();
+    cartId = await getOrCreateCartId(req.headers);
   } catch {
     return NextResponse.json(
       { error: "Database is unavailable" },
@@ -58,6 +58,17 @@ export async function POST(_req: Request) {
 
   if (cart.items.length === 0) {
     return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+  }
+
+  if (!cart.checkoutStartedAt) {
+    try {
+      await prisma.cart.update({
+        where: { id: cart.id },
+        data: { checkoutStartedAt: new Date() },
+      });
+    } catch {
+      // best-effort
+    }
   }
 
   const currency = cart.items[0].product.currency ?? "EUR";

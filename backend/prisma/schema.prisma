@@ -57,9 +57,16 @@ model Cart {
 
   email     String?
 
+  sessionId          String?
+  source             String?
+  checkoutStartedAt  DateTime?
+
   items     CartItem[]
 
   order     Order?
+
+  @@index([sessionId])
+  @@index([source])
 }
 
 model CartItem {
@@ -202,6 +209,11 @@ model Visit {
   referrer  String?
   path      String?
 
+  sessionId String?
+  device    String?
+  country   String?
+
   @@index([createdAt])
   @@index([source])
+  @@index([sessionId])
 }

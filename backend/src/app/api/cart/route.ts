@@ -5,7 +5,7 @@ import getPrisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   let prisma;
   try {
     prisma = getPrisma();
@@ -18,7 +18,7 @@ export async function GET() {
 
   let cartId;
   try {
-    cartId = await getOrCreateCartId();
+    cartId = await getOrCreateCartId(req.headers);
   } catch {
     return NextResponse.json(
       { error: "Database is unavailable" },

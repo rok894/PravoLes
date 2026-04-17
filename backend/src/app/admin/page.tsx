@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 
 let csrfToken: string | null = null;
@@ -57,6 +57,44 @@ type VisitStats = {
   sources: { source: string; count: number }[];
 };
 
+type Analytics = {
+  days: number;
+  granularity: "day" | "week" | "month";
+  sales: {
+    series: { bucket: string; orderCount: number; revenueCents: number }[];
+    totalCents: number;
+    orderCount: number;
+    avgOrderCents: number;
+    currency: string;
+  };
+  topProducts: { productId: string; title: string; qty: number; revenueCents: number }[];
+  conversionBySource: {
+    source: string;
+    visits: number;
+    carts: number;
+    paidOrders: number;
+    revenueCents: number;
+    conversionPct: number;
+  }[];
+  funnel: {
+    visits: number;
+    cartsWithItems: number;
+    checkoutStarted: number;
+    paid: number;
+  };
+  landingPages: { path: string; count: number }[];
+  geo: { country: string; count: number }[];
+  device: { device: string; count: number }[];
+};
+
+const DEVICE_LABELS: Record<string, string> = {
+  desktop: "Računalnik",
+  mobile: "Mobilni",
+  tablet: "Tablica",
+  bot: "Bot",
+  unknown: "Neznano",
+};
+
 const SOURCE_LABELS: Record<string, string> = {
   direct: "Neposredno",
   link: "Druga povezava",
@@ -100,7 +138,11 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [visits, setVisits] = useState<VisitStats | null>(null);
   const [visitDays, setVisitDays] = useState(30);
-  const [tab, setTab] = useState<"products" | "messages" | "visits">("products");
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [statsDays, setStatsDays] = useState(30);
+  const [granularity, setGranularity] = useState<"day" | "week" | "month">("day");
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [tab, setTab] = useState<"products" | "messages" | "visits" | "stats">("products");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,6 +185,27 @@ export default function AdminPage() {
       setLoading(false);
     }
   }
+
+  async function reloadStats(days: number, g: "day" | "week" | "month") {
+    setStatsDays(days);
+    setGranularity(g);
+    setStatsLoading(true);
+    try {
+      const res = await adminFetch(`/api/admin/analytics?days=${days}&granularity=${g}`);
+      if (res.ok) setAnalytics(await res.json());
+    } catch {
+      // ignore
+    } finally {
+      setStatsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (tab === "stats" && !analytics && !statsLoading) {
+      reloadStats(statsDays, granularity);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   async function reloadVisits(days: number) {
     setVisitDays(days);
@@ -262,6 +325,12 @@ export default function AdminPage() {
                 style={{ padding: "8px 20px", borderRadius: 8, border: "1px solid #ccc", background: tab === "visits" ? "#2f2117" : "#fff", color: tab === "visits" ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontWeight: 700 }}
               >
                 Obiski {visits ? `(${visits.total})` : ""}
+              </button>
+              <button
+                onClick={() => setTab("stats")}
+                style={{ padding: "8px 20px", borderRadius: 8, border: "1px solid #ccc", background: tab === "stats" ? "#2f2117" : "#fff", color: tab === "stats" ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontWeight: 700 }}
+              >
+                Statistika
               </button>
             </div>
 
@@ -427,6 +496,16 @@ export default function AdminPage() {
               </div>
             )}
 
+            {tab === "stats" && (
+              <StatsView
+                analytics={analytics}
+                days={statsDays}
+                granularity={granularity}
+                loading={statsLoading}
+                onReload={reloadStats}
+              />
+            )}
+
             {tab === "messages" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {messages.length === 0 && <p style={{ color: "#7c5e45" }}>Ni sporočil.</p>}
@@ -459,5 +538,268 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function fmtEur(cents: number, currency = "EUR") {
+  return new Intl.NumberFormat("de-DE", { style: "currency", currency }).format(cents / 100);
+}
+
+function BarList({
+  rows,
+  colors,
+  labels,
+}: {
+  rows: { key: string; count: number }[];
+  colors?: Record<string, string>;
+  labels?: Record<string, string>;
+}) {
+  const total = rows.reduce((s, r) => s + r.count, 0);
+  const max = rows[0]?.count ?? 1;
+  if (rows.length === 0) return <p style={{ color: "#7c5e45" }}>Ni podatkov.</p>;
+  return (
+    <div>
+      {rows.map((r) => {
+        const pct = total > 0 ? (r.count / total) * 100 : 0;
+        const barPct = (r.count / max) * 100;
+        const color = colors?.[r.key] ?? "#7c5e45";
+        const label = labels?.[r.key] ?? r.key;
+        return (
+          <div key={r.key} style={{ marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3, fontSize: "0.85rem" }}>
+              <span style={{ fontWeight: 600, color: "#1f1812" }}>{label}</span>
+              <span style={{ color: "#7c5e45" }}>
+                <strong style={{ color: "#1f1812" }}>{r.count}</strong> ({pct.toFixed(1)}%)
+              </span>
+            </div>
+            <div style={{ height: 10, background: "#f1e4d3", borderRadius: 5, overflow: "hidden" }}>
+              <div style={{ width: `${barPct}%`, height: "100%", background: color, transition: "width 320ms ease" }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StatsView({
+  analytics,
+  days,
+  granularity,
+  loading,
+  onReload,
+}: {
+  analytics: Analytics | null;
+  days: number;
+  granularity: "day" | "week" | "month";
+  loading: boolean;
+  onReload: (days: number, g: "day" | "week" | "month") => void;
+}) {
+  const cardStyle: CSSProperties = {
+    background: "#fff",
+    border: "1px solid #e4d2bf",
+    borderRadius: 12,
+    padding: "18px 22px",
+    marginBottom: 20,
+  };
+  const h: CSSProperties = { margin: "0 0 14px", fontSize: "1.05rem", color: "#2f2117" };
+
+  return (
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 18 }}>
+        <h2 style={{ margin: 0, fontSize: "1.4rem" }}>Statistika</h2>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {[7, 30, 90, 365].map((d) => (
+            <button
+              key={d}
+              onClick={() => onReload(d, granularity)}
+              style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #c8a882", background: days === d ? "#2f2117" : "#fff", color: days === d ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}
+            >
+              {d === 365 ? "1 leto" : `${d} dni`}
+            </button>
+          ))}
+          <span style={{ width: 10 }} />
+          {(["day", "week", "month"] as const).map((g) => (
+            <button
+              key={g}
+              onClick={() => onReload(days, g)}
+              style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #c8a882", background: granularity === g ? "#7c5e45" : "#fff", color: granularity === g ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}
+            >
+              {g === "day" ? "Dan" : g === "week" ? "Teden" : "Mesec"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading && !analytics && <p>Nalaganje…</p>}
+      {analytics && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 20 }}>
+            <MetricCard label="Skupen promet" value={fmtEur(analytics.sales.totalCents, analytics.sales.currency)} />
+            <MetricCard label="Naročila (plačana)" value={String(analytics.sales.orderCount)} />
+            <MetricCard label="Povprečna vrednost" value={fmtEur(analytics.sales.avgOrderCents, analytics.sales.currency)} />
+            <MetricCard label="Konverzija" value={analytics.funnel.visits > 0 ? `${((analytics.funnel.paid / analytics.funnel.visits) * 100).toFixed(2)}%` : "—"} />
+          </div>
+
+          <div style={cardStyle}>
+            <h3 style={h}>Prodaja po {granularity === "day" ? "dnevih" : granularity === "week" ? "tednih" : "mesecih"}</h3>
+            <SalesChart series={analytics.sales.series} currency={analytics.sales.currency} />
+          </div>
+
+          <div style={cardStyle}>
+            <h3 style={h}>Funnel</h3>
+            <FunnelView funnel={analytics.funnel} />
+          </div>
+
+          <div style={cardStyle}>
+            <h3 style={h}>Konverzija po viru</h3>
+            <ConversionTable rows={analytics.conversionBySource} currency={analytics.sales.currency} />
+          </div>
+
+          <div style={cardStyle}>
+            <h3 style={h}>Top 10 izdelkov</h3>
+            <TopProducts rows={analytics.topProducts} currency={analytics.sales.currency} />
+          </div>
+
+          <div style={cardStyle}>
+            <h3 style={h}>Landing strani (prvi obisk)</h3>
+            <BarList rows={analytics.landingPages.map((p) => ({ key: p.path, count: p.count }))} />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div style={cardStyle}>
+              <h3 style={h}>Države</h3>
+              <BarList rows={analytics.geo.map((p) => ({ key: p.country, count: p.count }))} />
+            </div>
+            <div style={cardStyle}>
+              <h3 style={h}>Naprave</h3>
+              <BarList
+                rows={analytics.device.map((p) => ({ key: p.device, count: p.count }))}
+                labels={DEVICE_LABELS}
+              />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ background: "#fff", border: "1px solid #e4d2bf", borderRadius: 12, padding: "14px 18px" }}>
+      <div style={{ fontSize: "0.78rem", color: "#7c5e45", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 700 }}>{label}</div>
+      <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#1f1812", marginTop: 4 }}>{value}</div>
+    </div>
+  );
+}
+
+function SalesChart({ series, currency }: { series: { bucket: string; orderCount: number; revenueCents: number }[]; currency: string }) {
+  if (series.length === 0) return <p style={{ color: "#7c5e45" }}>Ni podatkov.</p>;
+  const max = series.reduce((m, s) => Math.max(m, s.revenueCents), 0) || 1;
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 180, overflowX: "auto", paddingBottom: 20 }}>
+      {series.map((s) => {
+        const h = (s.revenueCents / max) * 160;
+        return (
+          <div key={s.bucket} title={`${s.bucket}: ${fmtEur(s.revenueCents, currency)} (${s.orderCount})`}
+            style={{ minWidth: 18, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 14, height: Math.max(2, h), background: s.revenueCents > 0 ? "#7c5e45" : "#e4d2bf", borderRadius: 2, transition: "height 300ms ease" }} />
+            <div style={{ fontSize: "0.6rem", color: "#7c5e45", transform: "rotate(-45deg)", transformOrigin: "top left", whiteSpace: "nowrap", marginTop: 4 }}>
+              {s.bucket.slice(5)}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function FunnelView({ funnel }: { funnel: Analytics["funnel"] }) {
+  const steps = [
+    { label: "Obisk", count: funnel.visits, color: "#c8a882" },
+    { label: "Dodano v košarico", count: funnel.cartsWithItems, color: "#a98565" },
+    { label: "Začel checkout", count: funnel.checkoutStarted, color: "#7c5e45" },
+    { label: "Plačano", count: funnel.paid, color: "#2f2117" },
+  ];
+  const max = steps[0].count || 1;
+  return (
+    <div>
+      {steps.map((s, i) => {
+        const pct = (s.count / max) * 100;
+        const prev = i > 0 ? steps[i - 1].count : s.count;
+        const dropPct = prev > 0 ? ((prev - s.count) / prev) * 100 : 0;
+        return (
+          <div key={s.label} style={{ marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: "0.88rem" }}>
+              <span style={{ fontWeight: 700 }}>{s.label}</span>
+              <span style={{ color: "#7c5e45" }}>
+                <strong style={{ color: "#1f1812" }}>{s.count}</strong>
+                {i > 0 && <> &nbsp;<span style={{ color: dropPct > 0 ? "#b0503a" : "#2d6a2d" }}>(-{dropPct.toFixed(1)}%)</span></>}
+              </span>
+            </div>
+            <div style={{ height: 20, background: "#f1e4d3", borderRadius: 6, overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: s.color, transition: "width 320ms ease" }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ConversionTable({ rows, currency }: { rows: Analytics["conversionBySource"]; currency: string }) {
+  if (rows.length === 0) return <p style={{ color: "#7c5e45" }}>Ni podatkov.</p>;
+  const cell: CSSProperties = { padding: "8px 10px", fontSize: "0.88rem" };
+  return (
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr style={{ borderBottom: "2px solid #c8a882", textAlign: "left", fontSize: "0.78rem", color: "#7c5e45" }}>
+          <th style={cell}>Vir</th>
+          <th style={cell}>Obiski</th>
+          <th style={cell}>Košarice</th>
+          <th style={cell}>Naročila</th>
+          <th style={cell}>Konverzija</th>
+          <th style={cell}>Prihodek</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.source} style={{ borderBottom: "1px solid #e4d2bf" }}>
+            <td style={{ ...cell, fontWeight: 700 }}>{r.source}</td>
+            <td style={cell}>{r.visits}</td>
+            <td style={cell}>{r.carts}</td>
+            <td style={cell}>{r.paidOrders}</td>
+            <td style={cell}>{r.conversionPct.toFixed(2)}%</td>
+            <td style={cell}>{fmtEur(r.revenueCents, currency)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function TopProducts({ rows, currency }: { rows: Analytics["topProducts"]; currency: string }) {
+  if (rows.length === 0) return <p style={{ color: "#7c5e45" }}>Ni podatkov.</p>;
+  const cell: CSSProperties = { padding: "8px 10px", fontSize: "0.88rem" };
+  return (
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr style={{ borderBottom: "2px solid #c8a882", textAlign: "left", fontSize: "0.78rem", color: "#7c5e45" }}>
+          <th style={cell}>Izdelek</th>
+          <th style={cell}>Količina</th>
+          <th style={cell}>Prihodek</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.productId} style={{ borderBottom: "1px solid #e4d2bf" }}>
+            <td style={{ ...cell, fontWeight: 700 }}>{r.title}</td>
+            <td style={cell}>{r.qty}</td>
+            <td style={cell}>{fmtEur(r.revenueCents, currency)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

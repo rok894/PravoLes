@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   let cartId;
   try {
-    cartId = await getOrCreateCartId();
+    cartId = await getOrCreateCartId(req.headers);
   } catch {
     return NextResponse.json(
       { error: "Database is unavailable" },
@@ -98,7 +98,7 @@ export async function PATCH(req: Request) {
 
   let cartId;
   try {
-    cartId = await getOrCreateCartId();
+    cartId = await getOrCreateCartId(req.headers);
   } catch {
     return NextResponse.json(
       { error: "Database is unavailable" },
@@ -152,7 +152,7 @@ export async function DELETE(req: Request) {
 
   let cartId;
   try {
-    cartId = await getOrCreateCartId();
+    cartId = await getOrCreateCartId(req.headers);
   } catch {
     return NextResponse.json(
       { error: "Database is unavailable" },

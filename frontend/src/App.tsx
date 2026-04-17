@@ -9,7 +9,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import CookieBanner from "./components/CookieBanner";
 import MobileCartFab from "./components/MobileCartFab";
 import PasswordResetModal from "./components/PasswordResetModal";
-import { fetchJson, BACKEND_URL } from "./api";
+import { fetchJson, BACKEND_URL, getSessionId } from "./api";
 import { useToast } from "./ToastContext";
 import { useAuth } from "./AuthContext";
 import AdminPanel from "./components/AdminPanel";
@@ -62,10 +62,12 @@ function App() {
     const params = new URLSearchParams(window.location.search);
     const utm = params.get("utm_source");
     const url = BACKEND_URL ? `${BACKEND_URL}/api/visits` : "/api/visits";
+    const sid = getSessionId();
     const payload = JSON.stringify({
       referrer: document.referrer || null,
       path: window.location.pathname,
       source: utm,
+      sessionId: sid,
     });
     if (navigator.sendBeacon) {
       const blob = new Blob([payload], { type: "application/json" });
@@ -73,7 +75,7 @@ function App() {
     } else {
       fetch(url, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", "x-session-id": sid },
         body: payload,
         credentials: "include",
         keepalive: true,
