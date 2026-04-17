@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateCartId } from "@/lib/cart";
+import { publicProduct } from "@/lib/pricing";
 import getPrisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ export async function GET(req: Request) {
       where: { id: cartId },
       include: {
         items: {
-          include: { product: true },
+          include: { product: true, variant: true },
           orderBy: { createdAt: "asc" },
         },
       },
@@ -51,11 +52,24 @@ export async function GET(req: Request) {
     );
   }
 
-  const items = cart.items.map((item) => ({
-    product: item.product,
-    qty: item.qty,
-    lineTotalCents: item.product.priceCents * item.qty,
-  }));
+  const items = cart.items.map((item) => {
+    const base = publicProduct(item.product);
+    const variant = item.variant;
+    const unitCents = variant?.priceCents ?? base.priceCents;
+    const variantLabel = variant
+      ? [variant.wood, variant.size, variant.color].filter(Boolean).join(" · ")
+      : null;
+    return {
+      product: { ...base, priceCents: unitCents },
+      variantId: variant?.id ?? null,
+      variantLabel,
+      variantColor: variant?.color ?? null,
+      variantSize: variant?.size ?? null,
+      variantWood: variant?.wood ?? null,
+      qty: item.qty,
+      lineTotalCents: unitCents * item.qty,
+    };
+  });
 
   const totalCents = items.reduce((sum, item) => sum + item.lineTotalCents, 0);
 

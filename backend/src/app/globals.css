@@ -164,6 +164,37 @@ a {
 .product-card__price {
   font-weight: 900;
   color: #835b3a;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-card__price-current {
+  line-height: 1.1;
+}
+
+.product-card__price-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: rgba(47, 33, 23, 0.72);
+}
+
+.product-card__price-old {
+  text-decoration: line-through;
+  color: rgba(47, 33, 23, 0.55);
+}
+
+.product-card__discount {
+  background: rgba(176, 80, 58, 0.12);
+  color: #b0503a;
+  border: 1px solid rgba(176, 80, 58, 0.24);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .product-card__body p {

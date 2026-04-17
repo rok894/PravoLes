@@ -5,6 +5,7 @@ import { fetchJson } from "../api";
 import { useAuth } from "../AuthContext";
 
 const DISMISS_KEY = "pravoles_auth_modal_dismissed_v1";
+const AUTO_OPEN_DISABLED_KEY = "pravoles_auth_modal_auto_open_disabled_v1";
 
 function AuthModal() {
   const { t } = useTranslation();
@@ -19,24 +20,41 @@ function AuthModal() {
   const [forgotSent, setForgotSent] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (loading) return;
     if (user) {
       setOpen(false);
-      return;
+      return () => { cancelled = true; };
+    }
+    try {
+      if (localStorage.getItem(AUTO_OPEN_DISABLED_KEY) === "1") {
+        setOpen(false);
+        return () => { cancelled = true; };
+      }
+    } catch {
+      // ignore
     }
     if (sessionStorage.getItem(DISMISS_KEY) === "1") {
       setOpen(false);
-      return;
+      return () => { cancelled = true; };
     }
     (async () => {
       try {
         await fetchJson("/api/health", { method: "GET" });
+        if (cancelled) return;
         setDbOk(true);
       } catch {
+        if (cancelled) return;
         setDbOk(false);
       }
+      if (cancelled) return;
       setOpen(true);
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [loading, user]);
 
   async function onSubmit(e: FormEvent) {
@@ -56,6 +74,11 @@ function AuthModal() {
           body: JSON.stringify({ email, password }),
         });
         setPassword("");
+        try {
+          localStorage.setItem(AUTO_OPEN_DISABLED_KEY, "1");
+        } catch {
+          // ignore
+        }
         sessionStorage.removeItem(DISMISS_KEY);
         await refresh();
         setOpen(false);
@@ -65,6 +88,11 @@ function AuthModal() {
           body: JSON.stringify({ email, password }),
         });
         setPassword("");
+        try {
+          localStorage.setItem(AUTO_OPEN_DISABLED_KEY, "1");
+        } catch {
+          // ignore
+        }
         sessionStorage.removeItem(DISMISS_KEY);
         await refresh();
         setOpen(false);

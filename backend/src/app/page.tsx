@@ -1,5 +1,6 @@
 import CartSidebar from "@/components/CartSidebar";
 import ProductGrid from "@/components/ProductGrid";
+import { publicProduct } from "@/lib/pricing";
 import getPrisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -66,7 +67,7 @@ export default async function Home() {
 
       <div className="layout">
         <main className="main">
-          <ProductGrid products={products} />
+          <ProductGrid products={products.map(publicProduct)} />
         </main>
         <aside className="aside">
           <CartSidebar />

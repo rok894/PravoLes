@@ -81,6 +81,19 @@ export async function POST(req: Request) {
             stripePaymentIntentId: paymentIntent,
           },
         });
+
+        // Decrement stock for variant items (idempotent via WebhookEvent claim above)
+        const items = await prisma.orderItem.findMany({
+          where: { orderId, variantId: { not: null } },
+          select: { variantId: true, qty: true },
+        });
+        for (const it of items) {
+          if (!it.variantId) continue;
+          await prisma.productVariant.update({
+            where: { id: it.variantId },
+            data: { stock: { decrement: it.qty } },
+          });
+        }
       } catch {
         return NextResponse.json(
           { error: "Database is unavailable" },

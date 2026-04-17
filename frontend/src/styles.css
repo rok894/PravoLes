@@ -647,6 +647,37 @@ img {
   font-size: 1rem;
   color: var(--accent);
   margin: 4px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-card__price-current {
+  line-height: 1.1;
+}
+
+.product-card__price-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.product-card__price-old {
+  text-decoration: line-through;
+  color: rgba(47, 33, 23, 0.55);
+}
+
+.product-card__discount {
+  background: rgba(176, 80, 58, 0.12);
+  color: #b0503a;
+  border: 1px solid rgba(176, 80, 58, 0.24);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .top-controls {
@@ -2193,6 +2224,10 @@ img {
   font-weight: 700;
   color: var(--accent-2);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
   flex-shrink: 0;
 }
 

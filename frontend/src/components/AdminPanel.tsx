@@ -8,6 +8,8 @@ type Product = {
   description: string;
   image: string;
   priceCents: number;
+  discountPercent: number;
+  salePriceCents: number | null;
   currency: string;
   active: boolean;
 };
@@ -89,6 +91,33 @@ function fmt(cents: number, currency: string) {
   return new Intl.NumberFormat("de-DE", { style: "currency", currency }).format(cents / 100);
 }
 
+function clampDiscountPercent(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(99, Math.max(0, Math.trunc(value)));
+}
+
+function effectiveSaleCents(product: { priceCents: number; discountPercent?: number }) {
+  const base = Math.trunc(product.priceCents);
+  const pct = clampDiscountPercent(product.discountPercent ?? 0);
+  if (pct <= 0) return Math.max(1, base);
+  return Math.max(1, Math.round((base * (100 - pct)) / 100));
+}
+
+function salePriceCentsFromDiscountPercent(baseCents: number, discountPercent: number) {
+  const base = Math.max(1, Math.trunc(baseCents));
+  const pct = clampDiscountPercent(discountPercent);
+  if (pct <= 0) return base;
+  return Math.max(1, Math.round((base * (100 - pct)) / 100));
+}
+
+function discountPercentFromSalePriceCents(baseCents: number, saleCents: number) {
+  const base = Math.max(1, Math.trunc(baseCents));
+  const sale = Math.max(1, Math.trunc(saleCents));
+  if (sale >= base) return 0;
+  const pct = Math.round(((base - sale) / base) * 100);
+  return clampDiscountPercent(pct);
+}
+
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
@@ -107,11 +136,107 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [newImage, setNewImage] = useState("");
   const [newAlt, setNewAlt] = useState("");
   const [newPrice, setNewPrice] = useState("");
+  const [newDiscount, setNewDiscount] = useState("");
+  const [newSalePrice, setNewSalePrice] = useState("");
+  const [newPricingMode, setNewPricingMode] = useState<"percent" | "sale">("percent");
   const [saving, setSaving] = useState(false);
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
+  const [editDiscount, setEditDiscount] = useState("");
+  const [editSalePrice, setEditSalePrice] = useState("");
+  const [editPricingMode, setEditPricingMode] = useState<"percent" | "sale">("percent");
   const [editActive, setEditActive] = useState(true);
+
+  function parseMoneyToCents(value: string) {
+    const num = parseFloat(value);
+    if (!Number.isFinite(num)) return null;
+    return Math.max(1, Math.round(num * 100));
+  }
+
+  function centsToMoney(cents: number) {
+    return (cents / 100).toFixed(2);
+  }
+
+  function onEditBasePriceChange(next: string) {
+    setEditPrice(next);
+    const base = parseMoneyToCents(next);
+    if (!base) return;
+    if (editPricingMode === "sale") {
+      const sale = parseMoneyToCents(editSalePrice);
+      if (!sale) return;
+      setEditDiscount(String(discountPercentFromSalePriceCents(base, sale)));
+    } else {
+      const pct = Math.round(parseFloat(editDiscount) || 0);
+      if (pct <= 0) {
+        setEditSalePrice("");
+        return;
+      }
+      setEditSalePrice(centsToMoney(salePriceCentsFromDiscountPercent(base, pct)));
+    }
+  }
+
+  function onEditDiscountChange(next: string) {
+    setEditPricingMode("percent");
+    setEditDiscount(next);
+    const base = parseMoneyToCents(editPrice);
+    if (!base) return;
+    const pct = Math.round(parseFloat(next) || 0);
+    if (pct <= 0) {
+      setEditSalePrice("");
+      return;
+    }
+    setEditSalePrice(centsToMoney(salePriceCentsFromDiscountPercent(base, pct)));
+  }
+
+  function onEditSalePriceChange(next: string) {
+    setEditPricingMode("sale");
+    setEditSalePrice(next);
+    const base = parseMoneyToCents(editPrice);
+    const sale = parseMoneyToCents(next);
+    if (!base || !sale) return;
+    setEditDiscount(String(discountPercentFromSalePriceCents(base, sale)));
+  }
+
+  function onNewBasePriceChange(next: string) {
+    setNewPrice(next);
+    const base = parseMoneyToCents(next);
+    if (!base) return;
+    if (newPricingMode === "sale") {
+      const sale = parseMoneyToCents(newSalePrice);
+      if (!sale) return;
+      setNewDiscount(String(discountPercentFromSalePriceCents(base, sale)));
+    } else {
+      const pct = Math.round(parseFloat(newDiscount) || 0);
+      if (pct <= 0) {
+        setNewSalePrice("");
+        return;
+      }
+      setNewSalePrice(centsToMoney(salePriceCentsFromDiscountPercent(base, pct)));
+    }
+  }
+
+  function onNewDiscountChange(next: string) {
+    setNewPricingMode("percent");
+    setNewDiscount(next);
+    const base = parseMoneyToCents(newPrice);
+    if (!base) return;
+    const pct = Math.round(parseFloat(next) || 0);
+    if (pct <= 0) {
+      setNewSalePrice("");
+      return;
+    }
+    setNewSalePrice(centsToMoney(salePriceCentsFromDiscountPercent(base, pct)));
+  }
+
+  function onNewSalePriceChange(next: string) {
+    setNewPricingMode("sale");
+    setNewSalePrice(next);
+    const base = parseMoneyToCents(newPrice);
+    const sale = parseMoneyToCents(next);
+    if (!base || !sale) return;
+    setNewDiscount(String(discountPercentFromSalePriceCents(base, sale)));
+  }
 
   async function load() {
     setLoading(true);
@@ -168,25 +293,44 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   }
 
   async function saveEdit(id: string) {
-    await fetchJson(`/api/admin/products/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        priceCents: Math.round(parseFloat(editPrice) * 100),
-        active: editActive,
-      }),
-    });
-    setProducts((prev) => prev.map((x) =>
-      x.id === id
-        ? { ...x, priceCents: Math.round(parseFloat(editPrice) * 100), active: editActive }
-        : x,
-    ));
-    setEditId(null);
+    try {
+      const baseCents = parseMoneyToCents(editPrice);
+      const saleCents = editSalePrice.trim() ? parseMoneyToCents(editSalePrice) : null;
+      if (!baseCents) {
+        setError("Vnesi veljavno redno ceno.");
+        return;
+      }
+      await fetchJson(`/api/admin/products/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          priceCents: baseCents,
+          discountPercent: Math.round(parseFloat(editDiscount) || 0),
+          salePriceCents: saleCents,
+          active: editActive,
+        }),
+      });
+      setProducts((prev) => prev.map((x) =>
+        x.id === id
+          ? { ...x, priceCents: baseCents, discountPercent: Math.round(parseFloat(editDiscount) || 0), salePriceCents: saleCents, active: editActive }
+          : x,
+      ));
+      setEditId(null);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   async function addProduct(e: { preventDefault(): void }) {
     e.preventDefault();
     setSaving(true);
     try {
+      const baseCents = parseMoneyToCents(newPrice);
+      const saleCents = newSalePrice.trim() ? parseMoneyToCents(newSalePrice) : null;
+      if (!baseCents) {
+        setError("Vnesi veljavno redno ceno.");
+        return;
+      }
       const { product } = await fetchJson<{ product: Product }>("/api/admin/products", {
         method: "POST",
         body: JSON.stringify({
@@ -194,11 +338,14 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           description: newDesc,
           image: newImage,
           alt: newAlt,
-          priceCents: Math.round(parseFloat(newPrice) * 100),
+          priceCents: baseCents,
+          discountPercent: Math.round(parseFloat(newDiscount) || 0),
+          salePriceCents: saleCents,
         }),
       });
       setProducts((prev) => [...prev, product]);
-      setNewTitle(""); setNewDesc(""); setNewImage(""); setNewAlt(""); setNewPrice("");
+      setNewTitle(""); setNewDesc(""); setNewImage(""); setNewAlt(""); setNewPrice(""); setNewDiscount(""); setNewSalePrice("");
+      setError(null);
     } finally {
       setSaving(false);
     }
@@ -444,6 +591,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     <tr style={{ borderBottom: "2px solid #c8a882", textAlign: "left", fontSize: "0.82rem", color: "#7c5e45" }}>
                       <th style={{ padding: "8px 10px" }}>Naziv</th>
                       <th style={{ padding: "8px 10px" }}>Cena</th>
+                      <th style={{ padding: "8px 10px" }}>Akcijska cena</th>
+                      <th style={{ padding: "8px 10px" }}>Popust</th>
                       <th style={{ padding: "8px 10px" }}>Status</th>
                       <th style={{ padding: "8px 10px" }}>Akcija</th>
                     </tr>
@@ -454,8 +603,39 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         <td style={{ padding: "10px 10px" }}>{p.title}</td>
                         <td style={{ padding: "10px 10px" }}>
                           {editId === p.id ? (
-                            <input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} style={{ width: 90, padding: "4px 8px", borderRadius: 6, border: "1px solid #c8a882" }} />
-                          ) : fmt(p.priceCents, p.currency)}
+                            <input type="number" step="0.01" value={editPrice} onChange={(e) => onEditBasePriceChange(e.target.value)} style={{ width: 90, padding: "4px 8px", borderRadius: 6, border: "1px solid #c8a882" }} />
+                          ) : (
+                            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 10 }}>
+                              <span style={{ fontWeight: 800, color: "#2f2117" }}>
+                                {fmt(p.salePriceCents ?? effectiveSaleCents(p), p.currency)}
+                              </span>
+                              {p.discountPercent > 0 ? (
+                                <span style={{ color: "#7c5e45", textDecoration: "line-through", fontSize: "0.9rem" }}>
+                                  {fmt(p.priceCents, p.currency)}
+                                </span>
+                              ) : null}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: "10px 10px" }}>
+                          {editId === p.id ? (
+                            <input type="number" step="0.01" value={editSalePrice} onChange={(e) => onEditSalePriceChange(e.target.value)} placeholder="â€”" style={{ width: 90, padding: "4px 8px", borderRadius: 6, border: "1px solid #c8a882" }} />
+                          ) : p.discountPercent > 0 ? (
+                            fmt(p.salePriceCents ?? effectiveSaleCents(p), p.currency)
+                          ) : (
+                            <span style={{ color: "#7c5e45", fontSize: "0.82rem" }}>â€”</span>
+                          )}
+                        </td>
+                        <td style={{ padding: "10px 10px" }}>
+                          {editId === p.id ? (
+                            <input type="number" step="1" min="0" max="99" value={editDiscount} onChange={(e) => onEditDiscountChange(e.target.value)} style={{ width: 70, padding: "4px 8px", borderRadius: 6, border: "1px solid #c8a882" }} />
+                          ) : p.discountPercent > 0 ? (
+                            <span style={{ background: "rgba(176,80,58,0.12)", color: "#b0503a", border: "1px solid rgba(176,80,58,0.24)", padding: "1px 10px", borderRadius: 999, fontSize: "0.75rem", fontWeight: 800 }}>
+                              -{p.discountPercent}%
+                            </span>
+                          ) : (
+                            <span style={{ color: "#7c5e45", fontSize: "0.82rem" }}>â€”</span>
+                          )}
                         </td>
                         <td style={{ padding: "10px 10px" }}>
                           {editId === p.id ? (
@@ -477,7 +657,17 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                             </>
                           ) : (
                             <>
-                              <button onClick={() => { setEditId(p.id); setEditPrice((p.priceCents / 100).toFixed(2)); setEditActive(p.active); }} style={{ padding: "4px 12px", borderRadius: 6, background: "#c8a882", border: "none", cursor: "pointer", fontSize: "0.8rem" }}>Uredi</button>
+                              <button onClick={() => {
+                                const base = Math.max(1, Math.trunc(p.priceCents));
+                                const sale = p.salePriceCents ?? effectiveSaleCents(p);
+                                const pct = sale < base ? discountPercentFromSalePriceCents(base, sale) : 0;
+                                setEditPricingMode("percent");
+                                setEditId(p.id);
+                                setEditPrice((base / 100).toFixed(2));
+                                setEditDiscount(String(pct));
+                                setEditSalePrice(pct > 0 ? centsToMoney(sale) : "");
+                                setEditActive(p.active);
+                              }} style={{ padding: "4px 12px", borderRadius: 6, background: "#c8a882", border: "none", cursor: "pointer", fontSize: "0.8rem" }}>Uredi</button>
                               <button onClick={() => toggleActive(p)} style={{ padding: "4px 12px", borderRadius: 6, background: p.active ? "#f0e0e0" : "#d0eed0", border: "none", cursor: "pointer", fontSize: "0.8rem" }}>
                                 {p.active ? "Skrij" : "Aktiviraj"}
                               </button>
@@ -495,11 +685,13 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     ["Naziv", newTitle, setNewTitle, "text"],
                     ["Slika (pot)", newImage, setNewImage, "text"],
                     ["Alt besedilo", newAlt, setNewAlt, "text"],
-                    ["Cena (€)", newPrice, setNewPrice, "number"],
+                    ["Cena (€)", newPrice, onNewBasePriceChange, "number"],
+                    ["Akcijska cena (€)", newSalePrice, onNewSalePriceChange, "number"],
+                    ["Popust (%)", newDiscount, onNewDiscountChange, "number"],
                   ] as const).map(([label, val, setter, type]) => (
                     <label key={label} style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.82rem", fontWeight: 600, color: "#544237" }}>
                       {label}
-                      <input type={type} step={type === "number" ? "0.01" : undefined} value={val} onChange={(e) => setter(e.target.value)} required style={{ padding: "7px 10px", borderRadius: 7, border: "1px solid #c8a882", fontSize: "0.9rem" }} />
+                      <input type={type} step={label === "Popust (%)" ? "1" : type === "number" ? "0.01" : undefined} min={label === "Popust (%)" ? 0 : undefined} max={label === "Popust (%)" ? 99 : undefined} value={val} onChange={(e) => setter(e.target.value)} required={label !== "Popust (%)" && label !== "Akcijska cena (€)"} style={{ padding: "7px 10px", borderRadius: 7, border: "1px solid #c8a882", fontSize: "0.9rem" }} />
                     </label>
                   ))}
                   <label style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 4, fontSize: "0.82rem", fontWeight: 600, color: "#544237" }}>

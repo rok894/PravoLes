@@ -9,6 +9,8 @@ type Product = {
   image: string;
   alt: string;
   priceCents: number;
+  originalPriceCents: number | null;
+  discountPercent: number;
   currency: string;
 };
 
@@ -63,7 +65,19 @@ function ProductGrid({ products, onCartChanged }: Props) {
               <div className="product-card__top">
                 <h3>{product.title}</h3>
                 <div className="product-card__price">
-                  {formatMoney(product.priceCents, product.currency)}
+                  <span className="product-card__price-current">
+                    {formatMoney(product.priceCents, product.currency)}
+                  </span>
+                  {product.originalPriceCents ? (
+                    <span className="product-card__price-meta">
+                      <span className="product-card__price-old">
+                        {formatMoney(product.originalPriceCents, product.currency)}
+                      </span>
+                      <span className="product-card__discount">
+                        -{product.discountPercent}%
+                      </span>
+                    </span>
+                  ) : null}
                 </div>
               </div>
               <p>{product.description}</p>

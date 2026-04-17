@@ -3,6 +3,8 @@ import { fetchJson } from "./api";
 
 export type User = { id: string; email: string; role?: string };
 
+const AUTO_OPEN_DISABLED_KEY = "pravoles_auth_modal_auto_open_disabled_v1";
+
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
@@ -43,6 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refresh().finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    try {
+      localStorage.setItem(AUTO_OPEN_DISABLED_KEY, "1");
+    } catch {
+      // ignore
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, loading, refresh, logout }}>

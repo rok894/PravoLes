@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchJson } from "../api";
-import { useCart } from "../cart";
+import { useCart, lineKey } from "../cart";
 
 function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("de-DE", {
@@ -25,7 +25,11 @@ function CartPanel() {
       for (const item of cart.items) {
         await fetchJson("/api/cart/items", {
           method: "POST",
-          body: JSON.stringify({ productId: item.product.id, qty: item.qty }),
+          body: JSON.stringify({
+            productId: item.product.id,
+            variantId: item.product.variantId ?? null,
+            qty: item.qty,
+          }),
         });
       }
       const { url } = await fetchJson<{ url: string }>("/api/checkout", {
@@ -62,9 +66,16 @@ function CartPanel() {
       ) : (
         <div className="cart-panel__items">
           {cart.items.map((item) => (
-            <div className="cart-panel__item" key={item.product.id}>
+            <div className="cart-panel__item" key={lineKey(item.product.id, item.product.variantId)}>
               <div className="cart-panel__item-main">
-                <div className="cart-panel__item-title">{item.product.title}</div>
+                <div className="cart-panel__item-title">
+                  {item.product.title}
+                  {item.product.variantLabel ? (
+                    <span style={{ color: "#7c5e45", fontWeight: 400, fontSize: "0.85em" }}>
+                      {" "}— {item.product.variantLabel}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="cart-panel__item-meta">
                   {t("cart.qty")}: {item.qty} &times;{" "}
                   {formatPrice(item.product.priceCents, item.product.currency)}
@@ -81,14 +92,14 @@ function CartPanel() {
                 <button
                   type="button"
                   className="cart-panel__btn"
-                  onClick={() => cart.removeOne(item.product.id)}
+                  onClick={() => cart.removeOne(item.product.id, item.product.variantId)}
                 >
                   -
                 </button>
                 <button
                   type="button"
                   className="cart-panel__btn cart-panel__btn--danger"
-                  onClick={() => cart.removeAll(item.product.id)}
+                  onClick={() => cart.removeAll(item.product.id, item.product.variantId)}
                 >
                   {t("cart.remove")}
                 </button>

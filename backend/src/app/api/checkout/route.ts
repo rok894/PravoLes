@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateCartId } from "@/lib/cart";
+import { effectivePriceCents } from "@/lib/pricing";
 import getPrisma from "@/lib/prisma";
 import getStripe from "@/lib/stripe";
 
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       where: { id: cartId },
       include: {
         items: {
-          include: { product: true },
+          include: { product: true, variant: true },
         },
       },
     });
@@ -71,9 +72,35 @@ export async function POST(req: Request) {
     }
   }
 
+  // Validate stock + variant consistency before charging
+  for (const item of cart.items) {
+    if (item.variant) {
+      if (!item.variant.active || item.variant.productId !== item.productId) {
+        return NextResponse.json({ error: "Cart contains an invalid variant" }, { status: 400 });
+      }
+      if (item.qty > item.variant.stock) {
+        return NextResponse.json(
+          { error: `Not enough stock for ${item.product.title}` },
+          { status: 400 },
+        );
+      }
+    }
+  }
+
   const currency = cart.items[0].product.currency ?? "EUR";
-  const totalCents = cart.items.reduce(
-    (sum, item) => sum + item.product.priceCents * item.qty,
+  const pricedItems = cart.items.map((item) => {
+    const variantLabel = item.variant
+      ? [item.variant.wood, item.variant.size, item.variant.color].filter(Boolean).join(", ")
+      : null;
+    return {
+      ...item,
+      unitPriceCents: item.variant?.priceCents ?? effectivePriceCents(item.product),
+      variantLabel,
+    };
+  });
+
+  const totalCents = pricedItems.reduce(
+    (sum, item) => sum + item.unitPriceCents * item.qty,
     0,
   );
 
@@ -87,14 +114,18 @@ export async function POST(req: Request) {
         status: "PENDING",
         customerEmail: cart.email ?? null,
         items: {
-          create: cart.items.map((item) => ({
+          create: pricedItems.map((item) => ({
             productId: item.productId,
+            variantId: item.variantId ?? null,
             title: item.product.title,
             description: item.product.description,
             image: item.product.image,
             alt: item.product.alt,
-            priceCents: item.product.priceCents,
+            priceCents: item.unitPriceCents,
             qty: item.qty,
+            variantColor: item.variant?.color ?? null,
+            variantSize: item.variant?.size ?? null,
+            variantWood: item.variant?.wood ?? null,
           })),
         },
         payment: {
@@ -125,13 +156,15 @@ export async function POST(req: Request) {
   try {
     session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: cart.items.map((item) => ({
+      line_items: pricedItems.map((item) => ({
         quantity: item.qty,
         price_data: {
           currency: item.product.currency ?? currency,
-          unit_amount: item.product.priceCents,
+          unit_amount: item.unitPriceCents,
           product_data: {
-            name: item.product.title,
+            name: item.variantLabel
+              ? `${item.product.title} — ${item.variantLabel}`
+              : item.product.title,
             description: item.product.description,
           },
         },

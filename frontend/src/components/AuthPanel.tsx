@@ -5,6 +5,8 @@ import { fetchJson } from "../api";
 
 type User = { id: string; email: string };
 
+const AUTO_OPEN_DISABLED_KEY = "pravoles_auth_modal_auto_open_disabled_v1";
+
 function AuthPanel() {
   const { t } = useTranslation();
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
@@ -47,6 +49,11 @@ function AuthPanel() {
           body: JSON.stringify({ email, password }),
         });
         setPassword("");
+        try {
+          localStorage.setItem(AUTO_OPEN_DISABLED_KEY, "1");
+        } catch {
+          // ignore
+        }
         await refreshMe();
       } else {
         await fetchJson("/api/auth/login", {
@@ -54,6 +61,11 @@ function AuthPanel() {
           body: JSON.stringify({ email, password }),
         });
         setPassword("");
+        try {
+          localStorage.setItem(AUTO_OPEN_DISABLED_KEY, "1");
+        } catch {
+          // ignore
+        }
         await refreshMe();
       }
     } catch (err) {

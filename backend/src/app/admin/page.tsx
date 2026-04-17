@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
+
+import {
+  discountPercentFromSalePriceCents,
+  effectivePriceCents,
+  salePriceCentsFromDiscountPercent,
+} from "@/lib/pricing";
 
 let csrfToken: string | null = null;
 async function getCsrfToken() {
@@ -38,7 +44,19 @@ type Product = {
   description: string;
   image: string;
   priceCents: number;
+  discountPercent: number;
+  salePriceCents: number | null;
   currency: string;
+  active: boolean;
+};
+
+type Variant = {
+  id: string;
+  color: string | null;
+  size: string | null;
+  wood: string | null;
+  priceCents: number;
+  stock: number;
   active: boolean;
 };
 
@@ -152,12 +170,125 @@ export default function AdminPage() {
   const [newImage, setNewImage] = useState("");
   const [newAlt, setNewAlt] = useState("");
   const [newPrice, setNewPrice] = useState("");
+  const [newDiscount, setNewDiscount] = useState("");
+  const [newSalePrice, setNewSalePrice] = useState("");
+  const [newPricingMode, setNewPricingMode] = useState<"percent" | "sale">("percent");
   const [saving, setSaving] = useState(false);
 
   // edit
   const [editId, setEditId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
+  const [editDiscount, setEditDiscount] = useState("");
+  const [editSalePrice, setEditSalePrice] = useState("");
+  const [editPricingMode, setEditPricingMode] = useState<"percent" | "sale">("percent");
   const [editActive, setEditActive] = useState(true);
+
+  const [variantsOpenFor, setVariantsOpenFor] = useState<string | null>(null);
+  const [variantsByProduct, setVariantsByProduct] = useState<Record<string, Variant[]>>({});
+  const [variantsLoading, setVariantsLoading] = useState<string | null>(null);
+  const [newVColor, setNewVColor] = useState("");
+  const [newVSize, setNewVSize] = useState("");
+  const [newVWood, setNewVWood] = useState("");
+  const [newVPrice, setNewVPrice] = useState("");
+  const [newVStock, setNewVStock] = useState("0");
+
+  function parseMoneyToCents(value: string) {
+    const num = parseFloat(value);
+    if (!Number.isFinite(num)) return null;
+    return Math.max(1, Math.round(num * 100));
+  }
+
+  function centsToMoney(cents: number) {
+    return (cents / 100).toFixed(2);
+  }
+
+  function onEditBasePriceChange(next: string) {
+    setEditPrice(next);
+    const base = parseMoneyToCents(next);
+    if (!base) return;
+    if (editPricingMode === "sale") {
+      const sale = parseMoneyToCents(editSalePrice);
+      if (!sale) return;
+      const pct = discountPercentFromSalePriceCents(base, sale);
+      setEditDiscount(String(pct));
+    } else {
+      const pct = Math.round(parseFloat(editDiscount) || 0);
+      if (pct <= 0) {
+        setEditSalePrice("");
+        return;
+      }
+      const sale = salePriceCentsFromDiscountPercent(base, pct);
+      setEditSalePrice(centsToMoney(sale));
+    }
+  }
+
+  function onEditDiscountChange(next: string) {
+    setEditPricingMode("percent");
+    setEditDiscount(next);
+    const base = parseMoneyToCents(editPrice);
+    if (!base) return;
+    const pct = Math.round(parseFloat(next) || 0);
+    if (pct <= 0) {
+      setEditSalePrice("");
+      return;
+    }
+    const sale = salePriceCentsFromDiscountPercent(base, pct);
+    setEditSalePrice(centsToMoney(sale));
+  }
+
+  function onEditSalePriceChange(next: string) {
+    setEditPricingMode("sale");
+    setEditSalePrice(next);
+    const base = parseMoneyToCents(editPrice);
+    const sale = parseMoneyToCents(next);
+    if (!base || !sale) return;
+    const pct = discountPercentFromSalePriceCents(base, sale);
+    setEditDiscount(String(pct));
+  }
+
+  function onNewBasePriceChange(next: string) {
+    setNewPrice(next);
+    const base = parseMoneyToCents(next);
+    if (!base) return;
+    if (newPricingMode === "sale") {
+      const sale = parseMoneyToCents(newSalePrice);
+      if (!sale) return;
+      const pct = discountPercentFromSalePriceCents(base, sale);
+      setNewDiscount(String(pct));
+    } else {
+      const pct = Math.round(parseFloat(newDiscount) || 0);
+      if (pct <= 0) {
+        setNewSalePrice("");
+        return;
+      }
+      const sale = salePriceCentsFromDiscountPercent(base, pct);
+      setNewSalePrice(centsToMoney(sale));
+    }
+  }
+
+  function onNewDiscountChange(next: string) {
+    setNewPricingMode("percent");
+    setNewDiscount(next);
+    const base = parseMoneyToCents(newPrice);
+    if (!base) return;
+    const pct = Math.round(parseFloat(next) || 0);
+    if (pct <= 0) {
+      setNewSalePrice("");
+      return;
+    }
+    const sale = salePriceCentsFromDiscountPercent(base, pct);
+    setNewSalePrice(centsToMoney(sale));
+  }
+
+  function onNewSalePriceChange(next: string) {
+    setNewPricingMode("sale");
+    setNewSalePrice(next);
+    const base = parseMoneyToCents(newPrice);
+    const sale = parseMoneyToCents(next);
+    if (!base || !sale) return;
+    const pct = discountPercentFromSalePriceCents(base, sale);
+    setNewDiscount(String(pct));
+  }
 
   async function load() {
     setLoading(true);
@@ -220,26 +351,44 @@ export default function AdminPage() {
   useEffect(() => { load(); }, []);
 
   async function toggleActive(p: Product) {
-    await adminFetch(`/api/admin/products/${p.id}`, {
+    const res = await adminFetch(`/api/admin/products/${p.id}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ active: !p.active }),
     });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error ?? "Shranjevanje ni uspelo.");
+      return;
+    }
     setProducts((prev) => prev.map((x) => x.id === p.id ? { ...x, active: !x.active } : x));
   }
 
   async function saveEdit(id: string) {
-    await adminFetch(`/api/admin/products/${id}`, {
+    const baseCents = parseMoneyToCents(editPrice);
+    const saleCents = editSalePrice.trim() ? parseMoneyToCents(editSalePrice) : null;
+    if (!baseCents) {
+      setError("Vnesi veljavno redno ceno.");
+      return;
+    }
+    const res = await adminFetch(`/api/admin/products/${id}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        priceCents: Math.round(parseFloat(editPrice) * 100),
+        priceCents: baseCents,
+        discountPercent: Math.round(parseFloat(editDiscount) || 0),
+        salePriceCents: saleCents,
         active: editActive,
       }),
     });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error ?? "Shranjevanje ni uspelo.");
+      return;
+    }
     setProducts((prev) => prev.map((x) =>
       x.id === id
-        ? { ...x, priceCents: Math.round(parseFloat(editPrice) * 100), active: editActive }
+        ? { ...x, priceCents: Math.round(parseFloat(editPrice) * 100), discountPercent: Math.round(parseFloat(editDiscount) || 0), active: editActive }
         : x,
     ));
     setEditId(null);
@@ -249,6 +398,12 @@ export default function AdminPage() {
     e.preventDefault();
     setSaving(true);
     try {
+      const baseCents = parseMoneyToCents(newPrice);
+      const saleCents = newSalePrice.trim() ? parseMoneyToCents(newSalePrice) : null;
+      if (!baseCents) {
+        setError("Vnesi veljavno redno ceno.");
+        return;
+      }
       const res = await adminFetch("/api/admin/products", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -257,15 +412,109 @@ export default function AdminPage() {
           description: newDesc,
           image: newImage,
           alt: newAlt,
-          priceCents: Math.round(parseFloat(newPrice) * 100),
+          priceCents: baseCents,
+          discountPercent: Math.round(parseFloat(newDiscount) || 0),
+          salePriceCents: saleCents,
         }),
       });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        setError(data?.error ?? "Shranjevanje ni uspelo.");
+        return;
+      }
       const { product } = await res.json();
       setProducts((prev) => [...prev, product]);
-      setNewTitle(""); setNewDesc(""); setNewImage(""); setNewAlt(""); setNewPrice("");
+      setNewTitle(""); setNewDesc(""); setNewImage(""); setNewAlt(""); setNewPrice(""); setNewDiscount(""); setNewSalePrice("");
     } finally {
       setSaving(false);
     }
+  }
+
+  async function openVariants(productId: string) {
+    if (variantsOpenFor === productId) {
+      setVariantsOpenFor(null);
+      return;
+    }
+    setVariantsOpenFor(productId);
+    if (!variantsByProduct[productId]) {
+      await loadVariants(productId);
+    }
+  }
+
+  async function loadVariants(productId: string) {
+    setVariantsLoading(productId);
+    try {
+      const res = await adminFetch(`/api/admin/products/${productId}/variants`);
+      if (res.ok) {
+        const { variants } = (await res.json()) as { variants: Variant[] };
+        setVariantsByProduct((prev) => ({ ...prev, [productId]: variants }));
+      }
+    } finally {
+      setVariantsLoading(null);
+    }
+  }
+
+  async function addVariant(productId: string) {
+    const priceCents = parseMoneyToCents(newVPrice);
+    if (priceCents == null) {
+      setError("Vnesi ceno variante.");
+      return;
+    }
+    const stock = Math.max(0, Math.round(parseFloat(newVStock) || 0));
+    const body = {
+      color: newVColor.trim() || null,
+      size: newVSize.trim() || null,
+      wood: newVWood.trim() || null,
+      priceCents,
+      stock,
+    };
+    const res = await adminFetch(`/api/admin/products/${productId}/variants`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error ?? "Shranjevanje ni uspelo.");
+      return;
+    }
+    setNewVColor("");
+    setNewVSize("");
+    setNewVWood("");
+    setNewVPrice("");
+    setNewVStock("0");
+    await loadVariants(productId);
+  }
+
+  async function patchVariant(productId: string, variantId: string, patch: Partial<Variant>) {
+    const res = await adminFetch(`/api/admin/products/${productId}/variants/${variantId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error ?? "Shranjevanje ni uspelo.");
+      return;
+    }
+    setVariantsByProduct((prev) => ({
+      ...prev,
+      [productId]: (prev[productId] ?? []).map((v) =>
+        v.id === variantId ? { ...v, ...patch } : v,
+      ),
+    }));
+  }
+
+  async function deleteVariant(productId: string, variantId: string) {
+    if (!confirm("Izbriši varianto?")) return;
+    const res = await adminFetch(`/api/admin/products/${productId}/variants/${variantId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      setError("Brisanje ni uspelo.");
+      return;
+    }
+    await loadVariants(productId);
   }
 
   async function markRead(id: string) {
@@ -341,13 +590,16 @@ export default function AdminPage() {
                     <tr style={{ borderBottom: "2px solid #c8a882", textAlign: "left", fontSize: "0.82rem", color: "#7c5e45" }}>
                       <th style={{ padding: "8px 10px" }}>Naziv</th>
                       <th style={{ padding: "8px 10px" }}>Cena</th>
+                      <th style={{ padding: "8px 10px" }}>Akcijska cena</th>
+                      <th style={{ padding: "8px 10px" }}>Popust</th>
                       <th style={{ padding: "8px 10px" }}>Status</th>
                       <th style={{ padding: "8px 10px" }}>Akcija</th>
                     </tr>
                   </thead>
                   <tbody>
                     {products.map((p) => (
-                      <tr key={p.id} style={{ borderBottom: "1px solid #e4d2bf", opacity: p.active ? 1 : 0.5 }}>
+                      <Fragment key={p.id}>
+                      <tr style={{ borderBottom: "1px solid #e4d2bf", opacity: p.active ? 1 : 0.5 }}>
                         <td style={{ padding: "10px 10px" }}>{p.title}</td>
                         <td style={{ padding: "10px 10px" }}>
                           {editId === p.id ? (
@@ -355,11 +607,55 @@ export default function AdminPage() {
                               type="number"
                               step="0.01"
                               value={editPrice}
-                              onChange={(e) => setEditPrice(e.target.value)}
+                              onChange={(e) => onEditBasePriceChange(e.target.value)}
                               style={{ width: 90, padding: "4px 8px", borderRadius: 6, border: "1px solid #c8a882" }}
                             />
                           ) : (
-                            fmt(p.priceCents, p.currency)
+                            <span style={{ display: "inline-flex", alignItems: "baseline", gap: 10 }}>
+                              <span style={{ fontWeight: 800, color: "#2f2117" }}>
+                                {fmt(effectivePriceCents(p), p.currency)}
+                              </span>
+                              {p.discountPercent > 0 ? (
+                                <span style={{ color: "#7c5e45", textDecoration: "line-through", fontSize: "0.9rem" }}>
+                                  {fmt(p.priceCents, p.currency)}
+                                </span>
+                              ) : null}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: "10px 10px" }}>
+                          {editId === p.id ? (
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={editSalePrice}
+                              onChange={(e) => onEditSalePriceChange(e.target.value)}
+                              placeholder="â€”"
+                              style={{ width: 90, padding: "4px 8px", borderRadius: 6, border: "1px solid #c8a882" }}
+                            />
+                          ) : p.discountPercent > 0 ? (
+                            fmt(effectivePriceCents(p), p.currency)
+                          ) : (
+                            <span style={{ color: "#7c5e45", fontSize: "0.82rem" }}>â€”</span>
+                          )}
+                        </td>
+                        <td style={{ padding: "10px 10px" }}>
+                          {editId === p.id ? (
+                            <input
+                              type="number"
+                              step="1"
+                              min="0"
+                              max="99"
+                              value={editDiscount}
+                              onChange={(e) => onEditDiscountChange(e.target.value)}
+                              style={{ width: 70, padding: "4px 8px", borderRadius: 6, border: "1px solid #c8a882" }}
+                            />
+                          ) : p.discountPercent > 0 ? (
+                            <span style={{ background: "rgba(176,80,58,0.12)", color: "#b0503a", border: "1px solid rgba(176,80,58,0.24)", padding: "1px 10px", borderRadius: 999, fontSize: "0.75rem", fontWeight: 800 }}>
+                              -{p.discountPercent}%
+                            </span>
+                          ) : (
+                            <span style={{ color: "#7c5e45", fontSize: "0.82rem" }}>â€”</span>
                           )}
                         </td>
                         <td style={{ padding: "10px 10px" }}>
@@ -382,15 +678,129 @@ export default function AdminPage() {
                             </>
                           ) : (
                             <>
-                              <button onClick={() => { setEditId(p.id); setEditPrice((p.priceCents / 100).toFixed(2)); setEditActive(p.active); }} style={{ padding: "4px 12px", borderRadius: 6, background: "#c8a882", border: "none", cursor: "pointer", fontSize: "0.8rem" }}>Uredi</button>
+                              <button onClick={() => {
+                                const base = Math.max(1, Math.trunc(p.priceCents));
+                                const sale = effectivePriceCents(p);
+                                const pct = sale < base ? discountPercentFromSalePriceCents(base, sale) : 0;
+                                setEditPricingMode("percent");
+                                setEditId(p.id);
+                                setEditPrice((base / 100).toFixed(2));
+                                setEditDiscount(String(pct));
+                                setEditSalePrice(pct > 0 ? centsToMoney(sale) : "");
+                                setEditActive(p.active);
+                              }} style={{ padding: "4px 12px", borderRadius: 6, background: "#c8a882", border: "none", cursor: "pointer", fontSize: "0.8rem" }}>Uredi</button>
                               <button onClick={() => toggleActive(p)} style={{ padding: "4px 12px", borderRadius: 6, background: p.active ? "#f0e0e0" : "#d0eed0", border: "none", cursor: "pointer", fontSize: "0.8rem" }}>
                                 {p.active ? "Skrij" : "Aktiviraj"}
+                              </button>
+                              <button onClick={() => openVariants(p.id)} style={{ padding: "4px 12px", borderRadius: 6, background: variantsOpenFor === p.id ? "#2f2117" : "#e4d2bf", color: variantsOpenFor === p.id ? "#f7f0e7" : "#1f1812", border: "none", cursor: "pointer", fontSize: "0.8rem" }}>
+                                Variante{(variantsByProduct[p.id]?.length ?? 0) > 0 ? ` (${variantsByProduct[p.id]!.length})` : ""}
                               </button>
                             </>
                           )}
                         </td>
                       </tr>
-                    ))}
+                      {variantsOpenFor === p.id && (
+                        <tr key={`${p.id}-variants`} style={{ background: "#fffaf2", borderBottom: "1px solid #e4d2bf" }}>
+                          <td colSpan={6} style={{ padding: "14px 18px" }}>
+                            {variantsLoading === p.id ? (
+                              <p style={{ margin: 0, color: "#7c5e45" }}>Nalaganje variant…</p>
+                            ) : (
+                              <>
+                                <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 14, fontSize: "0.85rem" }}>
+                                  <thead>
+                                    <tr style={{ borderBottom: "1px solid #c8a882", textAlign: "left", color: "#7c5e45" }}>
+                                      <th style={{ padding: "6px 8px" }}>Barva</th>
+                                      <th style={{ padding: "6px 8px" }}>Velikost</th>
+                                      <th style={{ padding: "6px 8px" }}>Les</th>
+                                      <th style={{ padding: "6px 8px" }}>Cena (€)</th>
+                                      <th style={{ padding: "6px 8px" }}>Zaloga</th>
+                                      <th style={{ padding: "6px 8px" }}>Aktivna</th>
+                                      <th style={{ padding: "6px 8px" }}></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(variantsByProduct[p.id] ?? []).length === 0 ? (
+                                      <tr><td colSpan={7} style={{ padding: "8px", color: "#7c5e45" }}>Ni variant.</td></tr>
+                                    ) : (
+                                      (variantsByProduct[p.id] ?? []).map((v) => (
+                                        <tr key={v.id} style={{ borderBottom: "1px solid #f1e4d3" }}>
+                                          <td style={{ padding: "6px 8px" }}>{v.color ?? "—"}</td>
+                                          <td style={{ padding: "6px 8px" }}>{v.size ?? "—"}</td>
+                                          <td style={{ padding: "6px 8px" }}>{v.wood ?? "—"}</td>
+                                          <td style={{ padding: "6px 8px" }}>
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              defaultValue={(v.priceCents / 100).toFixed(2)}
+                                              onBlur={(e) => {
+                                                const cents = parseMoneyToCents(e.target.value);
+                                                if (cents != null && cents !== v.priceCents) patchVariant(p.id, v.id, { priceCents: cents });
+                                              }}
+                                              style={{ width: 80, padding: "3px 6px", borderRadius: 5, border: "1px solid #c8a882" }}
+                                            />
+                                          </td>
+                                          <td style={{ padding: "6px 8px" }}>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              step="1"
+                                              defaultValue={v.stock}
+                                              onBlur={(e) => {
+                                                const n = Math.max(0, Math.round(parseFloat(e.target.value) || 0));
+                                                if (n !== v.stock) patchVariant(p.id, v.id, { stock: n });
+                                              }}
+                                              style={{ width: 60, padding: "3px 6px", borderRadius: 5, border: "1px solid #c8a882" }}
+                                            />
+                                          </td>
+                                          <td style={{ padding: "6px 8px" }}>
+                                            <input
+                                              type="checkbox"
+                                              checked={v.active}
+                                              onChange={(e) => patchVariant(p.id, v.id, { active: e.target.checked })}
+                                            />
+                                          </td>
+                                          <td style={{ padding: "6px 8px" }}>
+                                            <button onClick={() => deleteVariant(p.id, v.id)} style={{ padding: "3px 8px", borderRadius: 5, background: "#f0e0e0", color: "#8b2020", border: "none", cursor: "pointer", fontSize: "0.75rem" }}>
+                                              Izbriši
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      ))
+                                    )}
+                                  </tbody>
+                                </table>
+                                <div style={{ display: "flex", gap: 8, alignItems: "end", flexWrap: "wrap", background: "#fff", border: "1px solid #e4d2bf", padding: 10, borderRadius: 8 }}>
+                                  <label style={{ display: "flex", flexDirection: "column", fontSize: "0.75rem", color: "#544237", gap: 3 }}>
+                                    Barva
+                                    <input value={newVColor} onChange={(e) => setNewVColor(e.target.value)} style={{ padding: "4px 7px", border: "1px solid #c8a882", borderRadius: 5, width: 100 }} />
+                                  </label>
+                                  <label style={{ display: "flex", flexDirection: "column", fontSize: "0.75rem", color: "#544237", gap: 3 }}>
+                                    Velikost
+                                    <input value={newVSize} onChange={(e) => setNewVSize(e.target.value)} style={{ padding: "4px 7px", border: "1px solid #c8a882", borderRadius: 5, width: 80 }} />
+                                  </label>
+                                  <label style={{ display: "flex", flexDirection: "column", fontSize: "0.75rem", color: "#544237", gap: 3 }}>
+                                    Les
+                                    <input value={newVWood} onChange={(e) => setNewVWood(e.target.value)} style={{ padding: "4px 7px", border: "1px solid #c8a882", borderRadius: 5, width: 100 }} />
+                                  </label>
+                                  <label style={{ display: "flex", flexDirection: "column", fontSize: "0.75rem", color: "#544237", gap: 3 }}>
+                                    Cena (€)
+                                    <input type="number" step="0.01" value={newVPrice} onChange={(e) => setNewVPrice(e.target.value)} style={{ padding: "4px 7px", border: "1px solid #c8a882", borderRadius: 5, width: 80 }} />
+                                  </label>
+                                  <label style={{ display: "flex", flexDirection: "column", fontSize: "0.75rem", color: "#544237", gap: 3 }}>
+                                    Zaloga
+                                    <input type="number" min="0" step="1" value={newVStock} onChange={(e) => setNewVStock(e.target.value)} style={{ padding: "4px 7px", border: "1px solid #c8a882", borderRadius: 5, width: 70 }} />
+                                  </label>
+                                  <button onClick={() => addVariant(p.id)} style={{ padding: "6px 14px", borderRadius: 6, background: "#2f2117", color: "#f7f0e7", border: "none", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700 }}>
+                                    + Dodaj varianto
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
                   </tbody>
                 </table>
 
@@ -400,16 +810,20 @@ export default function AdminPage() {
                     ["Naziv", newTitle, setNewTitle, "text"],
                     ["Slika (pot)", newImage, setNewImage, "text"],
                     ["Alt besedilo", newAlt, setNewAlt, "text"],
-                    ["Cena (€)", newPrice, setNewPrice, "number"],
+                    ["Cena (€)", newPrice, onNewBasePriceChange, "number"],
+                    ["Akcijska cena (€)", newSalePrice, onNewSalePriceChange, "number"],
+                    ["Popust (%)", newDiscount, onNewDiscountChange, "number"],
                   ].map(([label, val, setter, type]) => (
                     <label key={label as string} style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.82rem", fontWeight: 600, color: "#544237" }}>
                       {label as string}
                       <input
                         type={type as string}
-                        step={type === "number" ? "0.01" : undefined}
+                        step={(label as string) === "Popust (%)" ? "1" : type === "number" ? "0.01" : undefined}
+                        min={(label as string) === "Popust (%)" ? 0 : undefined}
+                        max={(label as string) === "Popust (%)" ? 99 : undefined}
                         value={val as string}
                         onChange={(e) => (setter as (v: string) => void)(e.target.value)}
-                        required
+                        required={(label as string) !== "Popust (%)" && (label as string) !== "Akcijska cena (€)"}
                         style={{ padding: "7px 10px", borderRadius: 7, border: "1px solid #c8a882", fontSize: "0.9rem" }}
                       />
                     </label>

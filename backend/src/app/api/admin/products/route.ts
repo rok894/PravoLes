@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin";
 import { corsPreflight, withCors } from "@/lib/cors";
+import { clampDiscountPercent, discountPercentFromSalePriceCents, salePriceCentsFromDiscountPercent } from "@/lib/pricing";
 import getPrisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,8 @@ const createSchema = z.object({
   image: z.string().min(1).max(500).trim(),
   alt: z.string().min(1).max(300).trim(),
   priceCents: z.number().int().min(1),
+  discountPercent: z.number().int().min(0).max(99).default(0),
+  salePriceCents: z.number().int().min(1).nullable().optional(),
   currency: z.string().length(3).default("EUR"),
   active: z.boolean().default(true),
 });
@@ -51,9 +54,49 @@ export async function POST(req: Request) {
   }
 
   try {
-    const product = await prisma.product.create({ data: body.data });
+    const base = body.data.priceCents;
+    let sale = body.data.salePriceCents ?? null;
+    let pct = clampDiscountPercent(body.data.discountPercent);
+
+    if (sale != null) {
+      if (sale >= base) {
+        sale = null;
+        pct = 0;
+      } else {
+        pct = discountPercentFromSalePriceCents(base, sale);
+      }
+    } else {
+      if (pct <= 0) {
+        sale = null;
+        pct = 0;
+      } else {
+        sale = salePriceCentsFromDiscountPercent(base, pct);
+      }
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        ...body.data,
+        discountPercent: pct,
+        salePriceCents: sale,
+      },
+    });
     return withCors(NextResponse.json({ product }), origin);
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (
+      message.includes("no such column") ||
+      message.includes("Unknown argument") ||
+      message.includes("discountPercent")
+    ) {
+      return withCors(
+        NextResponse.json(
+          { error: "Database schema is out of date. Run prisma migrate/generate and restart the server." },
+          { status: 500 },
+        ),
+        origin,
+      );
+    }
     return withCors(NextResponse.json({ error: "DB unavailable" }, { status: 503 }), origin);
   }
 }

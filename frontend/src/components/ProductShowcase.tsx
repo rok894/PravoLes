@@ -7,6 +7,16 @@ import type { CartProduct } from "../cart";
 import ProductModal from "./ProductModal";
 import { useToast } from "../ToastContext";
 
+type Variant = {
+  id: string;
+  color: string | null;
+  size: string | null;
+  wood: string | null;
+  priceCents: number;
+  stock: number;
+  active: boolean;
+};
+
 type BackendProduct = {
   id: string;
   title: string;
@@ -14,7 +24,11 @@ type BackendProduct = {
   image: string;
   alt: string;
   priceCents: number;
+  priceFromCents?: number | null;
+  originalPriceCents?: number | null;
+  discountPercent?: number;
   currency: string;
+  variants?: Variant[];
 };
 
 function formatPrice(cents: number, currency: string) {
@@ -65,6 +79,13 @@ function ProductShowcase() {
       ) : (
         <div className="product-grid">
           {products.map((product) => {
+            const activeVariants = (product.variants ?? []).filter((v) => v.active);
+            const hasVariants = activeVariants.length > 0;
+            const variantPrices = activeVariants.map((v) => v.priceCents);
+            const minVariantPrice = variantPrices.length ? Math.min(...variantPrices) : product.priceCents;
+            const maxVariantPrice = variantPrices.length ? Math.max(...variantPrices) : product.priceCents;
+            const priceVaries = hasVariants && minVariantPrice !== maxVariantPrice;
+            const displayPrice = hasVariants ? minVariantPrice : product.priceCents;
             const cartProduct: CartProduct = {
               id: product.id,
               title: product.title,
@@ -73,6 +94,8 @@ function ProductShowcase() {
               alt: product.alt,
               priceCents: product.priceCents,
               currency: product.currency,
+              variantId: null,
+              variantLabel: null,
             };
             return (
               <article className="product-card" key={product.id}>
@@ -89,7 +112,19 @@ function ProductShowcase() {
                   </h3>
                   <p>{product.description}</p>
                   <div className="product-card__price">
-                    {formatPrice(product.priceCents, product.currency)}
+                    <span className="product-card__price-current">
+                      {priceVaries ? "od " : ""}{formatPrice(displayPrice, product.currency)}
+                    </span>
+                    {!hasVariants && product.originalPriceCents ? (
+                      <span className="product-card__price-meta">
+                        <span className="product-card__price-old">
+                          {formatPrice(product.originalPriceCents, product.currency)}
+                        </span>
+                        <span className="product-card__discount">
+                          -{product.discountPercent ?? 0}%
+                        </span>
+                      </span>
+                    ) : null}
                   </div>
                   <div className="product-card__actions">
                     <button
@@ -102,9 +137,16 @@ function ProductShowcase() {
                     <button
                       type="button"
                       className="button button--primary button--small"
-                      onClick={() => { cart.add(cartProduct); addToast(t("cart.added")); }}
+                      onClick={() => {
+                        if (hasVariants) {
+                          setSelected(product);
+                        } else {
+                          cart.add(cartProduct);
+                          addToast(t("cart.added"));
+                        }
+                      }}
                     >
-                      {t("cart.add")}
+                      {hasVariants ? "Izberi varianto" : t("cart.add")}
                     </button>
                   </div>
                 </div>

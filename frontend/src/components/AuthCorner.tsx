@@ -5,6 +5,7 @@ import { useAuth } from "../AuthContext";
 import OrderHistory from "./OrderHistory";
 
 const DISMISS_KEY = "pravoles_auth_modal_dismissed_v1";
+const AUTO_OPEN_DISABLED_KEY = "pravoles_auth_modal_auto_open_disabled_v1";
 
 const AVATAR_PALETTE = ["#5c4a3a", "#7c5e45", "#a0785a", "#6b5244", "#8b6b52", "#4a3728"];
 function avatarColor(email: string) {
@@ -47,6 +48,11 @@ function AuthCorner() {
       });
       setPassword("");
       setOpen(false);
+      try {
+        localStorage.setItem(AUTO_OPEN_DISABLED_KEY, "1");
+      } catch {
+        // ignore
+      }
       sessionStorage.removeItem(DISMISS_KEY);
       await refresh();
     } catch (err) {

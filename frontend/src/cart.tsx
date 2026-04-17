@@ -8,6 +8,8 @@ type CartProduct = {
   alt: string;
   priceCents: number;
   currency: string;
+  variantId?: string | null;
+  variantLabel?: string | null;
 };
 
 type CartItem = {
@@ -24,12 +26,16 @@ type CartApi = {
   totalCount: number;
   totalPriceCents: number;
   add: (product: CartProduct) => void;
-  removeOne: (id: string) => void;
-  removeAll: (id: string) => void;
+  removeOne: (id: string, variantId?: string | null) => void;
+  removeAll: (id: string, variantId?: string | null) => void;
   clear: () => void;
 };
 
-const STORAGE_KEY = "pravoles_cart_v2";
+const STORAGE_KEY = "pravoles_cart_v3";
+
+function lineKey(id: string, variantId?: string | null) {
+  return `${id}::${variantId ?? ""}`;
+}
 
 function safeParseCart(json: string | null): CartState | null {
   if (!json) return null;
@@ -51,6 +57,8 @@ function safeParseCart(json: string | null): CartState | null {
       const alt = (product as { alt?: unknown }).alt;
       const priceCents = (product as { priceCents?: unknown }).priceCents;
       const currency = (product as { currency?: unknown }).currency;
+      const variantIdRaw = (product as { variantId?: unknown }).variantId;
+      const variantLabelRaw = (product as { variantLabel?: unknown }).variantLabel;
       if (
         typeof id !== "string" ||
         typeof title !== "string" ||
@@ -65,7 +73,17 @@ function safeParseCart(json: string | null): CartState | null {
       const qtyNum = typeof qty === "number" ? qty : 1;
       if (!Number.isFinite(qtyNum) || qtyNum <= 0) continue;
       parsedItems.push({
-        product: { id, title, description, image, alt, priceCents, currency },
+        product: {
+          id,
+          title,
+          description,
+          image,
+          alt,
+          priceCents,
+          currency,
+          variantId: typeof variantIdRaw === "string" ? variantIdRaw : null,
+          variantLabel: typeof variantLabelRaw === "string" ? variantLabelRaw : null,
+        },
         qty: Math.floor(qtyNum),
       });
     }
@@ -96,8 +114,9 @@ function CartProvider({ children }: { children: React.ReactNode }) {
 
     function add(product: CartProduct) {
       setState((prev) => {
+        const key = lineKey(product.id, product.variantId);
         const existingIndex = prev.items.findIndex(
-          (item) => item.product.id === product.id,
+          (item) => lineKey(item.product.id, item.product.variantId) === key,
         );
         if (existingIndex === -1) {
           return { items: [...prev.items, { product, qty: 1 }] };
@@ -111,15 +130,20 @@ function CartProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    function removeOne(id: string) {
+    function removeOne(id: string, variantId?: string | null) {
       setState((prev) => {
+        const key = lineKey(id, variantId);
         const existingIndex = prev.items.findIndex(
-          (item) => item.product.id === id,
+          (item) => lineKey(item.product.id, item.product.variantId) === key,
         );
         if (existingIndex === -1) return prev;
         const existing = prev.items[existingIndex];
         if (existing.qty <= 1) {
-          return { items: prev.items.filter((item) => item.product.id !== id) };
+          return {
+            items: prev.items.filter(
+              (item) => lineKey(item.product.id, item.product.variantId) !== key,
+            ),
+          };
         }
         const next = prev.items.slice();
         next[existingIndex] = { product: existing.product, qty: existing.qty - 1 };
@@ -127,10 +151,15 @@ function CartProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    function removeAll(id: string) {
-      setState((prev) => ({
-        items: prev.items.filter((item) => item.product.id !== id),
-      }));
+    function removeAll(id: string, variantId?: string | null) {
+      setState((prev) => {
+        const key = lineKey(id, variantId);
+        return {
+          items: prev.items.filter(
+            (item) => lineKey(item.product.id, item.product.variantId) !== key,
+          ),
+        };
+      });
     }
 
     function clear() {
@@ -160,4 +189,4 @@ function useCart() {
 }
 
 export type { CartItem, CartProduct };
-export { CartProvider, useCart };
+export { CartProvider, useCart, lineKey };
