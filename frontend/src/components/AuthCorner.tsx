@@ -1,9 +1,10 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchJson } from "../api";
+import { useAuth } from "../AuthContext";
 import OrderHistory from "./OrderHistory";
 
-type User = { id: string; email: string };
+const DISMISS_KEY = "pravoles_auth_modal_dismissed_v1";
 
 const AVATAR_PALETTE = ["#5c4a3a", "#7c5e45", "#a0785a", "#6b5244", "#8b6b52", "#4a3728"];
 function avatarColor(email: string) {
@@ -12,7 +13,7 @@ function avatarColor(email: string) {
 
 function AuthCorner() {
   const { t } = useTranslation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, refresh, logout: ctxLogout } = useAuth();
   const [open, setOpen] = useState(false);
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -22,17 +23,6 @@ function AuthCorner() {
   const [busy, setBusy] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  async function refreshMe() {
-    try {
-      const data = await fetchJson<{ user: User | null }>("/api/auth/me", { method: "GET" });
-      setUser(data.user);
-    } catch {
-      setUser(null);
-    }
-  }
-
-  useEffect(() => { refreshMe(); }, []);
 
   useEffect(() => { setOpen(false); }, [user]);
 
@@ -57,7 +47,8 @@ function AuthCorner() {
       });
       setPassword("");
       setOpen(false);
-      await refreshMe();
+      sessionStorage.removeItem(DISMISS_KEY);
+      await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -85,8 +76,7 @@ function AuthCorner() {
   async function logout() {
     setBusy(true);
     try {
-      await fetchJson("/api/auth/logout", { method: "POST", body: "{}" });
-      setUser(null);
+      await ctxLogout();
     } catch {
       // ignore
     } finally {

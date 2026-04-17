@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     const user = await getCurrentUser();
     return withCors(
       NextResponse.json({
-        user: user ? { id: user.id, email: user.email } : null,
+        user: user ? { id: user.id, email: user.email, role: user.role } : null,
       }),
       origin,
     );

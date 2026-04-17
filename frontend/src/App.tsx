@@ -11,6 +11,8 @@ import MobileCartFab from "./components/MobileCartFab";
 import PasswordResetModal from "./components/PasswordResetModal";
 import { fetchJson, BACKEND_URL } from "./api";
 import { useToast } from "./ToastContext";
+import { useAuth } from "./AuthContext";
+import AdminPanel from "./components/AdminPanel";
 
 type Highlight = { title: string; text: string };
 type AboutPoint = { title: string; text: string };
@@ -25,6 +27,8 @@ type ContactItem = { title: string; text: string };
 function App() {
   const { t, i18n } = useTranslation();
   const { addToast } = useToast();
+  const { user } = useAuth();
+  const [isAdminPath, setIsAdminPath] = useState(() => window.location.pathname === "/admin");
   const [langOpen, setLangOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement | null>(null);
@@ -32,6 +36,14 @@ function App() {
     const params = new URLSearchParams(window.location.search);
     return params.get("reset_token");
   });
+
+  useEffect(() => {
+    function onPopState() {
+      setIsAdminPath(window.location.pathname === "/admin");
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   useEffect(() => {
     if (resetToken) {
@@ -412,6 +424,12 @@ function App() {
       </div>
       <MobileCartFab />
       <CookieBanner />
+      {isAdminPath && user?.role === "ADMIN" && (
+        <AdminPanel onClose={() => {
+          window.history.pushState({}, "", "/");
+          setIsAdminPath(false);
+        }} />
+      )}
       {resetToken && (
         <PasswordResetModal token={resetToken} onDone={() => setResetToken(null)} />
       )}

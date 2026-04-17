@@ -26,16 +26,23 @@ export async function GET(req: Request) {
   const days = Math.min(Math.max(parseInt(url.searchParams.get("days") ?? "30", 10) || 30, 1), 365);
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  const grouped = await prisma.visit.groupBy({
-    by: ["source"],
-    where: { createdAt: { gte: since } },
-    _count: { _all: true },
-  });
+  try {
+    const allVisits = await prisma.visit.findMany({
+      select: { source: true, createdAt: true },
+    });
+    const visits = allVisits.filter((v) => new Date(v.createdAt) >= since);
+    const counts: Record<string, number> = {};
+    for (const v of visits) {
+      counts[v.source] = (counts[v.source] ?? 0) + 1;
+    }
+    const total = visits.length;
+    const sources = Object.entries(counts)
+      .map(([source, count]) => ({ source, count }))
+      .sort((a, b) => b.count - a.count);
 
-  const total = grouped.reduce((sum, g) => sum + g._count._all, 0);
-  const sources = grouped
-    .map((g) => ({ source: g.source, count: g._count._all }))
-    .sort((a, b) => b.count - a.count);
-
-  return withCors(NextResponse.json({ days, total, sources }), origin);
+    return withCors(NextResponse.json({ days, total, sources }), origin);
+  } catch (err) {
+    console.error("[visits] query error:", String(err));
+    return withCors(NextResponse.json({ error: String(err) }, { status: 500 }), origin);
+  }
 }

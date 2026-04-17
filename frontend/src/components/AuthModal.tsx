@@ -2,15 +2,14 @@ import { FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { fetchJson } from "../api";
-
-type User = { id: string; email: string };
+import { useAuth } from "../AuthContext";
 
 const DISMISS_KEY = "pravoles_auth_modal_dismissed_v1";
 
 function AuthModal() {
   const { t } = useTranslation();
+  const { user, loading, refresh } = useAuth();
   const [open, setOpen] = useState(false);
-  const [checking, setChecking] = useState(true);
   const [dbOk, setDbOk] = useState(true);
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
@@ -19,35 +18,26 @@ function AuthModal() {
   const [busy, setBusy] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
 
-  async function refreshMe(): Promise<User | null> {
-    const data = await fetchJson<{ user: User | null }>("/api/auth/me", {
-      method: "GET",
-    });
-    return data.user;
-  }
-
   useEffect(() => {
+    if (loading) return;
+    if (user) {
+      setOpen(false);
+      return;
+    }
+    if (sessionStorage.getItem(DISMISS_KEY) === "1") {
+      setOpen(false);
+      return;
+    }
     (async () => {
       try {
-        if (sessionStorage.getItem(DISMISS_KEY) === "1") {
-          setOpen(false);
-          return;
-        }
-        try {
-          await fetchJson("/api/health", { method: "GET" });
-          setDbOk(true);
-        } catch {
-          setDbOk(false);
-        }
-        const user = await refreshMe();
-        setOpen(!user);
+        await fetchJson("/api/health", { method: "GET" });
+        setDbOk(true);
       } catch {
-        setOpen(true);
-      } finally {
-        setChecking(false);
+        setDbOk(false);
       }
+      setOpen(true);
     })();
-  }, []);
+  }, [loading, user]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -66,16 +56,18 @@ function AuthModal() {
           body: JSON.stringify({ email, password }),
         });
         setPassword("");
-        setOpen(false);
         sessionStorage.removeItem(DISMISS_KEY);
+        await refresh();
+        setOpen(false);
       } else {
         await fetchJson("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password }),
         });
         setPassword("");
-        setOpen(false);
         sessionStorage.removeItem(DISMISS_KEY);
+        await refresh();
+        setOpen(false);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -89,7 +81,7 @@ function AuthModal() {
     setOpen(false);
   }
 
-  if (checking || !open) return null;
+  if (loading || !open) return null;
 
   return (
     <div className="auth-modal" role="dialog" aria-modal="true">

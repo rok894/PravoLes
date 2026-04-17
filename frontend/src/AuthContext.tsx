@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { fetchJson } from "./api";
 
-export type User = { id: string; email: string };
+export type User = { id: string; email: string; role?: string };
 
 interface AuthContextValue {
   user: User | null;

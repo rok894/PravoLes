@@ -9,7 +9,6 @@ export default defineConfig({
       interval: 100,
     },
     proxy: {
-      // Dev-only: proxy backend routes so auth cookies are same-origin.
       "/api": {
         target: "http://localhost:3001",
         changeOrigin: true,

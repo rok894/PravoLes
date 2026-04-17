@@ -11,12 +11,14 @@ async function requireAdmin(origin: string | null): Promise<AdminGuardResult> {
   let user;
   try {
     user = await getCurrentUser();
-  } catch {
+  } catch (err) {
+    console.error("[admin] getCurrentUser error:", err);
     return {
       ok: false,
       response: withCors(NextResponse.json({ error: "DB unavailable" }, { status: 503 }), origin),
     };
   }
+  console.log("[admin] user:", user ? { id: user.id, email: user.email, role: user.role } : null);
   if (!user || user.role !== "ADMIN") {
     return {
       ok: false,
