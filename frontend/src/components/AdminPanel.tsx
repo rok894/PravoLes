@@ -21,6 +21,30 @@ type Message = {
   read: boolean;
 };
 
+type OrderItem = {
+  id: string;
+  title: string;
+  priceCents: number;
+  qty: number;
+};
+
+type Payment = {
+  id: string;
+  status: "REQUIRES_ACTION" | "SUCCEEDED" | "FAILED";
+  stripeSessionId: string | null;
+};
+
+type Order = {
+  id: string;
+  createdAt: string;
+  status: "PENDING" | "PAID" | "CANCELED";
+  totalCents: number;
+  currency: string;
+  customerEmail: string | null;
+  items: OrderItem[];
+  payment: Payment | null;
+};
+
 type VisitStats = {
   days: number;
   total: number;
@@ -69,9 +93,12 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [orderFilter, setOrderFilter] = useState<"" | "PENDING" | "PAID" | "CANCELED">("");
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [visits, setVisits] = useState<VisitStats | null>(null);
   const [visitDays, setVisitDays] = useState(30);
-  const [tab, setTab] = useState<"products" | "messages" | "visits">("visits");
+  const [tab, setTab] = useState<"products" | "messages" | "visits" | "orders">("visits");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,6 +128,12 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       setMessages(mRes.messages);
     } catch (err) {
       errors.push("messages: " + (err instanceof Error ? err.message : String(err)));
+    }
+    try {
+      const oRes = await fetchJson<{ orders: Order[] }>("/api/admin/orders");
+      setOrders(oRes.orders);
+    } catch (err) {
+      errors.push("orders: " + (err instanceof Error ? err.message : String(err)));
     }
     try {
       const vRes = await fetchJson<VisitStats>(`/api/admin/visits?days=${visitDays}`);
@@ -188,6 +221,16 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setMessages((prev) => prev.filter((m) => m.id !== id));
   }
 
+  async function updateOrderStatus(id: string, status: Order["status"]) {
+    const { order } = await fetchJson<{ order: Order }>("/api/admin/orders", {
+      method: "PATCH",
+      body: JSON.stringify({ id, status }),
+    });
+    setOrders((prev) => prev.map((o) => o.id === id ? order : o));
+  }
+
+  const filteredOrders = orderFilter ? orders.filter((o) => o.status === orderFilter) : orders;
+
   const unread = messages.filter((m) => !m.read).length;
 
   return (
@@ -215,6 +258,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {([
                 ["visits", `Obiski ${visits ? `(${visits.total})` : ""}`],
+                ["orders", `Naročila (${orders.length})`],
                 ["products", `Izdelki (${products.length})`],
                 ["messages", `Sporočila`],
               ] as const).map(([key, label]) => (
@@ -273,6 +317,118 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                           <div style={{ height: 12, background: "#f1e4d3", borderRadius: 6, overflow: "hidden" }}>
                             <div style={{ width: `${barPct}%`, height: "100%", background: color, transition: "width 320ms ease" }} />
                           </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {tab === "orders" && (
+              <div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 18, flexWrap: "wrap" }}>
+                  <h2 style={{ margin: 0, fontSize: "1.4rem" }}>Naročila</h2>
+                  <span style={{ color: "#7c5e45", fontSize: "0.9rem" }}>
+                    Skupaj <strong>{orders.length}</strong> naročil
+                  </span>
+                  <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+                    {([["", "Vsa"], ["PENDING", "V obdelavi"], ["PAID", "Plačana"], ["CANCELED", "Preklicana"]] as const).map(([val, label]) => (
+                      <button
+                        key={val}
+                        onClick={() => setOrderFilter(val as typeof orderFilter)}
+                        style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #c8a882", background: orderFilter === val ? "#2f2117" : "#fff", color: orderFilter === val ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {filteredOrders.length === 0 ? (
+                  <p style={{ color: "#7c5e45" }}>Ni naročil.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {filteredOrders.map((o) => {
+                      const statusLabel = o.status === "PAID" ? "Plačano" : o.status === "CANCELED" ? "Preklicano" : "V obdelavi";
+                      const statusBg = o.status === "PAID" ? "rgba(60,120,60,0.12)" : o.status === "CANCELED" ? "#f0e0e0" : "#fff3cd";
+                      const statusColor = o.status === "PAID" ? "#2d6a2d" : o.status === "CANCELED" ? "#8b2020" : "#856404";
+                      const payLabel = o.payment?.status === "SUCCEEDED" ? "Uspešno" : o.payment?.status === "FAILED" ? "Neuspešno" : "Čaka";
+                      const payColor = o.payment?.status === "SUCCEEDED" ? "#2d6a2d" : o.payment?.status === "FAILED" ? "#8b2020" : "#856404";
+                      const expanded = expandedOrder === o.id;
+
+                      return (
+                        <div key={o.id} style={{ background: "#fff", border: "1px solid #e4d2bf", borderRadius: 12, padding: "14px 18px" }}>
+                          <div
+                            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+                            onClick={() => setExpandedOrder(expanded ? null : o.id)}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                              <span style={{ fontSize: "0.75rem", color: "#7c5e45" }}>
+                                {new Date(o.createdAt).toLocaleDateString("sl-SI")}
+                              </span>
+                              <span style={{ fontWeight: 700 }}>{fmt(o.totalCents, o.currency)}</span>
+                              <span style={{ background: statusBg, color: statusColor, padding: "2px 10px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 700 }}>
+                                {statusLabel}
+                              </span>
+                              {o.payment && (
+                                <span style={{ fontSize: "0.75rem", color: payColor, fontWeight: 600 }}>
+                                  Plačilo: {payLabel}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <span style={{ fontSize: "0.82rem", color: "#7c5e45" }}>
+                                {o.customerEmail ?? "—"}
+                              </span>
+                              <span style={{ fontSize: "0.75rem", color: "#c8a882" }}>{expanded ? "▲" : "▼"}</span>
+                            </div>
+                          </div>
+
+                          {expanded && (
+                            <div style={{ marginTop: 14, borderTop: "1px solid #e4d2bf", paddingTop: 14 }}>
+                              <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 14 }}>
+                                <thead>
+                                  <tr style={{ borderBottom: "1px solid #e4d2bf", fontSize: "0.78rem", color: "#7c5e45", textAlign: "left" }}>
+                                    <th style={{ padding: "6px 8px" }}>Artikel</th>
+                                    <th style={{ padding: "6px 8px" }}>Kol.</th>
+                                    <th style={{ padding: "6px 8px" }}>Cena</th>
+                                    <th style={{ padding: "6px 8px" }}>Skupaj</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {o.items.map((item) => (
+                                    <tr key={item.id} style={{ borderBottom: "1px solid #f1e4d3", fontSize: "0.88rem" }}>
+                                      <td style={{ padding: "8px 8px" }}>{item.title}</td>
+                                      <td style={{ padding: "8px 8px" }}>{item.qty}</td>
+                                      <td style={{ padding: "8px 8px" }}>{fmt(item.priceCents, o.currency)}</td>
+                                      <td style={{ padding: "8px 8px", fontWeight: 600 }}>{fmt(item.priceCents * item.qty, o.currency)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+
+                              <div style={{ display: "flex", gap: 8, fontSize: "0.82rem" }}>
+                                <span style={{ color: "#7c5e45" }}>Spremeni status:</span>
+                                {(["PENDING", "PAID", "CANCELED"] as const).filter((s) => s !== o.status).map((s) => {
+                                  const btnLabel = s === "PAID" ? "Plačano" : s === "CANCELED" ? "Preklicano" : "V obdelavi";
+                                  return (
+                                    <button
+                                      key={s}
+                                      onClick={() => updateOrderStatus(o.id, s)}
+                                      style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid #c8a882", background: "#f7f1ea", cursor: "pointer", fontSize: "0.78rem", fontWeight: 600 }}
+                                    >
+                                      {btnLabel}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <div style={{ marginTop: 10, fontSize: "0.75rem", color: "#999" }}>
+                                ID: {o.id}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
