@@ -2,6 +2,7 @@
   "nav": {
     "vsebina": "Contenuto",
     "products": "Prodotti",
+    "customOrders": "Ordini su misura",
     "about": "Chi siamo",
     "gallery": "Galleria",
     "contact": "Contatto"
@@ -59,6 +60,45 @@
     "title": "I miei ordini",
     "myOrders": "I miei ordini",
     "empty": "Non hai ancora ordini."
+  },
+  "customOrders": {
+    "eyebrow": "Ordini su misura",
+    "title": "Su vostra richiesta",
+    "lead": "Desiderate un pezzo unico che non è nel catalogo? Descrivete la vostra idea e, se volete, allegate delle foto — prepareremo un preventivo in base a complessità, dimensioni e materiale. Dopo l'accettazione del preventivo il pagamento avviene in modo sicuro tramite Stripe.",
+    "openForm": "Invia richiesta",
+    "openAnother": "Invia un'altra richiesta",
+    "form": {
+      "name": "Nome e cognome",
+      "email": "Email",
+      "phone": "Telefono (facoltativo)",
+      "description": "Descrizione del prodotto",
+      "descriptionPlaceholder": "Descrivete cosa desiderate — funzione, stile, uso previsto, richieste particolari...",
+      "dimensions": "Dimensioni / materiale (facoltativo)",
+      "dimensionsPlaceholder": "es. 80×40×50 cm, rovere, oliato",
+      "images": "Foto di ispirazione",
+      "imagesHint": "(fino a {{max}} immagini, max 5 MB per immagine)",
+      "removeImage": "Rimuovi",
+      "submit": "Invia richiesta",
+      "success": "Grazie! Abbiamo ricevuto la vostra richiesta. Prepareremo un preventivo e vi contatteremo via email.",
+      "error": "Invio fallito. Riprovate.",
+      "errorSize": "Immagine troppo grande (max 5 MB).",
+      "errorType": "Sono ammesse solo immagini (JPEG, PNG, WebP, GIF)."
+    },
+    "status": {
+      "SUBMITTED": "Inviata",
+      "QUOTED": "Preventivo",
+      "ACCEPTED": "Accettata",
+      "PAID": "Pagata",
+      "REJECTED": "Rifiutata",
+      "CANCELED": "Annullata"
+    },
+    "my": {
+      "tab": "Richieste su misura",
+      "empty": "Non hai ancora richieste su misura.",
+      "acceptAndPay": "Accetta e paga",
+      "cancel": "Annulla",
+      "confirmCancel": "Sei sicuro di voler annullare questa richiesta?"
+    }
   },
   "hero": {
     "eyebrow": "Lavorazione artigianale del legno",

@@ -2,6 +2,7 @@
   "nav": {
     "vsebina": "Overview",
     "products": "Products",
+    "customOrders": "Custom orders",
     "about": "About",
     "gallery": "Gallery",
     "contact": "Contact"
@@ -59,6 +60,45 @@
     "title": "My orders",
     "myOrders": "My orders",
     "empty": "You have no orders yet."
+  },
+  "customOrders": {
+    "eyebrow": "Custom orders",
+    "title": "Made to your wishes",
+    "lead": "Looking for a unique piece that is not in our catalog? Describe your idea and attach photos if you like — we will prepare a quote based on complexity, size and material. Once you accept the quote, payment is handled securely via Stripe.",
+    "openForm": "Send a request",
+    "openAnother": "Send another request",
+    "form": {
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone (optional)",
+      "description": "Product description",
+      "descriptionPlaceholder": "Describe what you want — function, style, intended use, special wishes...",
+      "dimensions": "Dimensions / material (optional)",
+      "dimensionsPlaceholder": "e.g. 80×40×50 cm, oak, oil finish",
+      "images": "Inspiration photos",
+      "imagesHint": "(up to {{max}} images, max 5 MB each)",
+      "removeImage": "Remove",
+      "submit": "Send request",
+      "success": "Thanks! We received your request. We will prepare a quote and contact you by email.",
+      "error": "Failed to send. Please try again.",
+      "errorSize": "Image too large (max 5 MB).",
+      "errorType": "Only images are allowed (JPEG, PNG, WebP, GIF)."
+    },
+    "status": {
+      "SUBMITTED": "Submitted",
+      "QUOTED": "Quoted",
+      "ACCEPTED": "Accepted",
+      "PAID": "Paid",
+      "REJECTED": "Rejected",
+      "CANCELED": "Canceled"
+    },
+    "my": {
+      "tab": "Custom requests",
+      "empty": "You have no custom order requests yet.",
+      "acceptAndPay": "Accept and pay",
+      "cancel": "Cancel",
+      "confirmCancel": "Are you sure you want to cancel this request?"
+    }
   },
   "hero": {
     "eyebrow": "Handcrafted woodwork",

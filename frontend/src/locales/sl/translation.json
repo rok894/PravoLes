@@ -2,6 +2,7 @@
   "nav": {
     "vsebina": "Vsebina",
     "products": "Izdelki",
+    "customOrders": "Naročila po meri",
     "about": "O nas",
     "gallery": "Galerija",
     "contact": "Kontakt"
@@ -59,6 +60,45 @@
     "title": "Moja naročila",
     "myOrders": "Moja naročila",
     "empty": "Še nimate naročil."
+  },
+  "customOrders": {
+    "eyebrow": "Naročila po meri",
+    "title": "Naročila po vaši želji",
+    "lead": "Želite unikaten kos, ki ga ni v katalogu? Opišite svojo idejo in po potrebi priložite fotografije — pripravimo vam ponudbo glede na zahtevnost, velikost in material. Po potrditvi ponudbe plačilo poteka varno preko Stripe.",
+    "openForm": "Pošlji povpraševanje",
+    "openAnother": "Pošlji še eno povpraševanje",
+    "form": {
+      "name": "Ime in priimek",
+      "email": "E-pošta",
+      "phone": "Telefon (neobvezno)",
+      "description": "Opis izdelka",
+      "descriptionPlaceholder": "Opišite, kaj želite — funkcija, slog, namen uporabe, posebne želje...",
+      "dimensions": "Dimenzije / material (neobvezno)",
+      "dimensionsPlaceholder": "npr. 80×40×50 cm, hrast, olje",
+      "images": "Fotografije za navdih",
+      "imagesHint": "(do {{max}} slik, največ 5 MB na sliko)",
+      "removeImage": "Odstrani",
+      "submit": "Pošlji povpraševanje",
+      "success": "Hvala! Vaše povpraševanje smo prejeli. Pripravili bomo ponudbo in vas obvestili po e-pošti.",
+      "error": "Napaka pri pošiljanju. Poskusite znova.",
+      "errorSize": "Slika je prevelika (največ 5 MB).",
+      "errorType": "Dovoljene so samo slike (JPEG, PNG, WebP, GIF)."
+    },
+    "status": {
+      "SUBMITTED": "Oddano",
+      "QUOTED": "Ponudba",
+      "ACCEPTED": "Sprejeto",
+      "PAID": "Plačano",
+      "REJECTED": "Zavrnjeno",
+      "CANCELED": "Preklicano"
+    },
+    "my": {
+      "tab": "Povpraševanja",
+      "empty": "Nimate oddanih povpraševanj po meri.",
+      "acceptAndPay": "Sprejmi in plačaj",
+      "cancel": "Prekliči",
+      "confirmCancel": "Ali res želite preklicati to povpraševanje?"
+    }
   },
   "hero": {
     "eyebrow": "Ročna lesena dela",

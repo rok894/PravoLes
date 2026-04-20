@@ -29,6 +29,15 @@ enum Role {
   ADMIN
 }
 
+enum CustomOrderStatus {
+  SUBMITTED
+  QUOTED
+  ACCEPTED
+  PAID
+  REJECTED
+  CANCELED
+}
+
 model Product {
   id          String   @id @default(cuid())
   createdAt   DateTime @default(now())
@@ -168,12 +177,64 @@ model Payment {
 
   status             PaymentStatus @default(REQUIRES_ACTION)
 
-  orderId            String        @unique
-  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId            String?       @unique
+  order              Order?        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  customOrderId      String?       @unique
+  customOrder        CustomOrderRequest? @relation(fields: [customOrderId], references: [id], onDelete: Cascade)
 
   stripeCustomerId   String?
   stripeSessionId    String?       @unique
   stripePaymentIntentId String?    @unique
+}
+
+model CustomOrderRequest {
+  id              String             @id @default(cuid())
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  userId          String?
+  user            User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  email           String
+  name            String
+  phone           String?
+  description     String
+  dimensions      String?
+
+  status          CustomOrderStatus  @default(SUBMITTED)
+
+  quotePriceCents Int?
+  currency        String             @default("EUR")
+  quoteMessage    String?
+  adminNotes      String?
+
+  quotedAt        DateTime?
+  acceptedAt      DateTime?
+  paidAt          DateTime?
+  rejectedAt      DateTime?
+  canceledAt      DateTime?
+
+  images          CustomOrderImage[]
+  payment         Payment?
+
+  @@index([status])
+  @@index([userId])
+  @@index([email])
+}
+
+model CustomOrderImage {
+  id        String             @id @default(cuid())
+  createdAt DateTime           @default(now())
+
+  requestId String
+  request   CustomOrderRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  path      String
+  mimeType  String
+  sizeBytes Int
+
+  @@index([requestId])
 }
 
 model ContactMessage {
@@ -211,6 +272,7 @@ model User {
   lockedUntil           DateTime?
 
   sessions              Session[]
+  customOrders          CustomOrderRequest[]
 
   @@index([lockedUntil])
 }

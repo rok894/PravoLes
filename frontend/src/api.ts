@@ -54,7 +54,8 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 
   const headers = new Headers(init?.headers);
   if (!headers.has("accept")) headers.set("accept", "application/json");
-  if (init?.body && !headers.has("content-type")) {
+  const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
+  if (init?.body && !headers.has("content-type") && !isFormData) {
     headers.set("content-type", "application/json");
   }
   if (!headers.has("x-session-id")) headers.set("x-session-id", getSessionId());

@@ -2,6 +2,7 @@
   "nav": {
     "vsebina": "Inhalt",
     "products": "Produkte",
+    "customOrders": "Maßanfertigung",
     "about": "Über uns",
     "gallery": "Galerie",
     "contact": "Kontakt"
@@ -59,6 +60,45 @@
     "title": "Meine Bestellungen",
     "myOrders": "Meine Bestellungen",
     "empty": "Sie haben noch keine Bestellungen."
+  },
+  "customOrders": {
+    "eyebrow": "Maßanfertigung",
+    "title": "Nach Ihren Wünschen",
+    "lead": "Sie möchten ein einzigartiges Stück, das nicht im Katalog ist? Beschreiben Sie Ihre Idee und laden Sie bei Bedarf Fotos hoch — wir erstellen ein Angebot basierend auf Komplexität, Größe und Material. Nach Annahme des Angebots erfolgt die Zahlung sicher über Stripe.",
+    "openForm": "Anfrage senden",
+    "openAnother": "Weitere Anfrage senden",
+    "form": {
+      "name": "Vor- und Nachname",
+      "email": "E-Mail",
+      "phone": "Telefon (optional)",
+      "description": "Produktbeschreibung",
+      "descriptionPlaceholder": "Beschreiben Sie, was Sie möchten — Funktion, Stil, Verwendungszweck, besondere Wünsche...",
+      "dimensions": "Abmessungen / Material (optional)",
+      "dimensionsPlaceholder": "z. B. 80×40×50 cm, Eiche, geölt",
+      "images": "Inspirationsfotos",
+      "imagesHint": "(bis zu {{max}} Bilder, max. 5 MB pro Bild)",
+      "removeImage": "Entfernen",
+      "submit": "Anfrage senden",
+      "success": "Danke! Wir haben Ihre Anfrage erhalten. Wir erstellen ein Angebot und melden uns per E-Mail.",
+      "error": "Senden fehlgeschlagen. Bitte erneut versuchen.",
+      "errorSize": "Bild zu groß (max. 5 MB).",
+      "errorType": "Nur Bilder erlaubt (JPEG, PNG, WebP, GIF)."
+    },
+    "status": {
+      "SUBMITTED": "Eingereicht",
+      "QUOTED": "Angebot",
+      "ACCEPTED": "Angenommen",
+      "PAID": "Bezahlt",
+      "REJECTED": "Abgelehnt",
+      "CANCELED": "Storniert"
+    },
+    "my": {
+      "tab": "Maßanfragen",
+      "empty": "Sie haben noch keine Maßanfragen.",
+      "acceptAndPay": "Annehmen und bezahlen",
+      "cancel": "Stornieren",
+      "confirmCancel": "Möchten Sie diese Anfrage wirklich stornieren?"
+    }
   },
   "hero": {
     "eyebrow": "Handgefertigte Holzarbeiten",

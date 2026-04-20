@@ -53,6 +53,52 @@ type VisitStats = {
   sources: { source: string; count: number }[];
 };
 
+type CustomOrderImage = { id: string; path: string; mimeType: string; sizeBytes: number };
+
+type CustomOrderRequest = {
+  id: string;
+  createdAt: string;
+  status: "SUBMITTED" | "QUOTED" | "ACCEPTED" | "PAID" | "REJECTED" | "CANCELED";
+  name: string;
+  email: string;
+  phone: string | null;
+  description: string;
+  dimensions: string | null;
+  quotePriceCents: number | null;
+  currency: string;
+  quoteMessage: string | null;
+  adminNotes: string | null;
+  images: CustomOrderImage[];
+  payment: Payment | null;
+};
+
+const CUSTOM_STATUS_LABELS: Record<CustomOrderRequest["status"], string> = {
+  SUBMITTED: "Oddano",
+  QUOTED: "Ponudba poslana",
+  ACCEPTED: "Sprejeto",
+  PAID: "Plačano",
+  REJECTED: "Zavrnjeno",
+  CANCELED: "Preklicano",
+};
+
+const CUSTOM_STATUS_COLORS: Record<CustomOrderRequest["status"], { bg: string; fg: string }> = {
+  SUBMITTED: { bg: "#fff3cd", fg: "#856404" },
+  QUOTED: { bg: "rgba(60,90,160,0.12)", fg: "#2d3d8a" },
+  ACCEPTED: { bg: "rgba(60,120,60,0.12)", fg: "#2d6a2d" },
+  PAID: { bg: "rgba(60,120,60,0.22)", fg: "#205020" },
+  REJECTED: { bg: "#f0e0e0", fg: "#8b2020" },
+  CANCELED: { bg: "#e8e0d8", fg: "#544237" },
+};
+
+const ADMIN_BACKEND_URL = ((import.meta.env.VITE_BACKEND_URL as string | undefined) ?? "")
+  .trim()
+  .replace(/\/$/, "");
+
+function resolveAdminImage(path: string) {
+  if (/^https?:\/\//.test(path)) return path;
+  return ADMIN_BACKEND_URL ? `${ADMIN_BACKEND_URL}${path}` : path;
+}
+
 const SOURCE_LABELS: Record<string, string> = {
   direct: "Neposredno",
   link: "Druga povezava",
@@ -127,7 +173,14 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [visits, setVisits] = useState<VisitStats | null>(null);
   const [visitDays, setVisitDays] = useState(30);
-  const [tab, setTab] = useState<"products" | "messages" | "visits" | "orders">("visits");
+  const [tab, setTab] = useState<"products" | "messages" | "visits" | "orders" | "custom">("visits");
+  const [customOrders, setCustomOrders] = useState<CustomOrderRequest[]>([]);
+  const [customFilter, setCustomFilter] = useState<"" | CustomOrderRequest["status"]>("");
+  const [customExpanded, setCustomExpanded] = useState<string | null>(null);
+  const [customQuoteCents, setCustomQuoteCents] = useState<Record<string, string>>({});
+  const [customQuoteMessage, setCustomQuoteMessage] = useState<Record<string, string>>({});
+  const [customAdminNotes, setCustomAdminNotes] = useState<Record<string, string>>({});
+  const [customSavingId, setCustomSavingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -266,6 +319,12 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     } catch (err) {
       errors.push("visits: " + (err instanceof Error ? err.message : String(err)));
     }
+    try {
+      const cRes = await fetchJson<{ requests: CustomOrderRequest[] }>("/api/admin/custom-orders");
+      setCustomOrders(cRes.requests);
+    } catch (err) {
+      errors.push("custom-orders: " + (err instanceof Error ? err.message : String(err)));
+    }
     if (errors.length > 0) {
       setError(errors.join(" | "));
     }
@@ -368,6 +427,75 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setMessages((prev) => prev.filter((m) => m.id !== id));
   }
 
+  async function sendCustomQuote(id: string) {
+    const raw = customQuoteCents[id];
+    const cents = parseMoneyToCents(raw ?? "");
+    if (!cents) {
+      setError("Vnesi veljavno ceno za ponudbo.");
+      return;
+    }
+    setCustomSavingId(id);
+    try {
+      const { request } = await fetchJson<{ request: CustomOrderRequest }>(
+        `/api/admin/custom-orders/${id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            action: "quote",
+            quotePriceCents: cents,
+            quoteMessage: customQuoteMessage[id] ?? null,
+          }),
+        },
+      );
+      setCustomOrders((prev) => prev.map((r) => (r.id === id ? { ...r, ...request } : r)));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCustomSavingId(null);
+    }
+  }
+
+  async function rejectCustom(id: string) {
+    if (!confirm("Zavrni povpraševanje?")) return;
+    setCustomSavingId(id);
+    try {
+      const { request } = await fetchJson<{ request: CustomOrderRequest }>(
+        `/api/admin/custom-orders/${id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            action: "reject",
+            quoteMessage: customQuoteMessage[id] ?? null,
+            adminNotes: customAdminNotes[id] ?? null,
+          }),
+        },
+      );
+      setCustomOrders((prev) => prev.map((r) => (r.id === id ? { ...r, ...request } : r)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCustomSavingId(null);
+    }
+  }
+
+  async function saveCustomNotes(id: string) {
+    setCustomSavingId(id);
+    try {
+      await fetchJson(`/api/admin/custom-orders/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          action: "notes",
+          adminNotes: customAdminNotes[id] ?? null,
+        }),
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCustomSavingId(null);
+    }
+  }
+
   async function updateOrderStatus(id: string, status: Order["status"]) {
     const { order } = await fetchJson<{ order: Order }>("/api/admin/orders", {
       method: "PATCH",
@@ -406,6 +534,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               {([
                 ["visits", `Obiski ${visits ? `(${visits.total})` : ""}`],
                 ["orders", `Naročila (${orders.length})`],
+                ["custom", `Povpraševanja (${customOrders.length})`],
                 ["products", `Izdelki (${products.length})`],
                 ["messages", `Sporočila`],
               ] as const).map(([key, label]) => (
@@ -581,6 +710,173 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     })}
                   </div>
                 )}
+              </div>
+            )}
+
+            {tab === "custom" && (
+              <div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 18, flexWrap: "wrap" }}>
+                  <h2 style={{ margin: 0, fontSize: "1.4rem" }}>Povpraševanja po meri</h2>
+                  <span style={{ color: "#7c5e45", fontSize: "0.9rem" }}>
+                    Skupaj <strong>{customOrders.length}</strong>
+                  </span>
+                  <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {([
+                      ["", "Vsa"],
+                      ["SUBMITTED", "Oddano"],
+                      ["QUOTED", "Ponudba"],
+                      ["ACCEPTED", "Sprejeto"],
+                      ["PAID", "Plačano"],
+                      ["REJECTED", "Zavrnjeno"],
+                      ["CANCELED", "Preklicano"],
+                    ] as const).map(([val, label]) => (
+                      <button
+                        key={val}
+                        onClick={() => setCustomFilter(val as typeof customFilter)}
+                        style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #c8a882", background: customFilter === val ? "#2f2117" : "#fff", color: customFilter === val ? "#f7f0e7" : "#1f1812", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {(() => {
+                  const list = customFilter ? customOrders.filter((r) => r.status === customFilter) : customOrders;
+                  if (list.length === 0) {
+                    return <p style={{ color: "#7c5e45" }}>Ni povpraševanj.</p>;
+                  }
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {list.map((r) => {
+                        const colors = CUSTOM_STATUS_COLORS[r.status];
+                        const expanded = customExpanded === r.id;
+                        const quoteRaw = customQuoteCents[r.id] ?? (r.quotePriceCents != null ? (r.quotePriceCents / 100).toFixed(2) : "");
+                        const msgRaw = customQuoteMessage[r.id] ?? r.quoteMessage ?? "";
+                        const notesRaw = customAdminNotes[r.id] ?? r.adminNotes ?? "";
+                        return (
+                          <div key={r.id} style={{ background: "#fff", border: "1px solid #e4d2bf", borderRadius: 12, padding: "14px 18px" }}>
+                            <div
+                              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", flexWrap: "wrap", gap: 8 }}
+                              onClick={() => setCustomExpanded(expanded ? null : r.id)}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                                <span style={{ fontSize: "0.75rem", color: "#7c5e45" }}>
+                                  {new Date(r.createdAt).toLocaleDateString("sl-SI")}
+                                </span>
+                                <strong>{r.name}</strong>
+                                <a href={`mailto:${r.email}`} style={{ color: "#7c5e45", fontSize: "0.85rem" }} onClick={(e) => e.stopPropagation()}>
+                                  {r.email}
+                                </a>
+                                <span style={{ background: colors.bg, color: colors.fg, padding: "2px 10px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 700 }}>
+                                  {CUSTOM_STATUS_LABELS[r.status]}
+                                </span>
+                                {r.quotePriceCents != null && (
+                                  <span style={{ fontWeight: 700 }}>{fmt(r.quotePriceCents, r.currency)}</span>
+                                )}
+                              </div>
+                              <span style={{ fontSize: "0.75rem", color: "#c8a882" }}>{expanded ? "▲" : "▼"}</span>
+                            </div>
+
+                            {expanded && (
+                              <div style={{ marginTop: 14, borderTop: "1px solid #e4d2bf", paddingTop: 14 }}>
+                                {r.phone && (
+                                  <p style={{ margin: "0 0 6px", fontSize: "0.88rem" }}>
+                                    <strong>Telefon:</strong> {r.phone}
+                                  </p>
+                                )}
+                                <p style={{ margin: "0 0 8px", whiteSpace: "pre-wrap" }}>{r.description}</p>
+                                {r.dimensions && (
+                                  <p style={{ margin: "0 0 8px", fontSize: "0.85rem", color: "#544237" }}>
+                                    <strong>Dimenzije / material:</strong> {r.dimensions}
+                                  </p>
+                                )}
+                                {r.images.length > 0 && (
+                                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                                    {r.images.map((img) => (
+                                      <a key={img.id} href={resolveAdminImage(img.path)} target="_blank" rel="noreferrer">
+                                        <img
+                                          src={resolveAdminImage(img.path)}
+                                          alt=""
+                                          style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 6, border: "1px solid #e4d2bf" }}
+                                        />
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {(r.status === "SUBMITTED" || r.status === "QUOTED") && (
+                                  <div style={{ background: "#f7f1ea", padding: 12, borderRadius: 8, marginTop: 10 }}>
+                                    <h4 style={{ margin: "0 0 8px", fontSize: "0.95rem" }}>Pošlji ponudbo</h4>
+                                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start", flexWrap: "wrap" }}>
+                                      <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.8rem", fontWeight: 600 }}>
+                                        Cena (€)
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          min="0.01"
+                                          value={quoteRaw}
+                                          onChange={(e) => setCustomQuoteCents((p) => ({ ...p, [r.id]: e.target.value }))}
+                                          style={{ width: 120, padding: "6px 10px", borderRadius: 6, border: "1px solid #c8a882" }}
+                                        />
+                                      </label>
+                                      <label style={{ flex: "1 1 260px", display: "flex", flexDirection: "column", gap: 4, fontSize: "0.8rem", fontWeight: 600 }}>
+                                        Sporočilo kupcu (neobvezno)
+                                        <textarea
+                                          value={msgRaw}
+                                          onChange={(e) => setCustomQuoteMessage((p) => ({ ...p, [r.id]: e.target.value }))}
+                                          rows={2}
+                                          style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #c8a882", resize: "vertical" }}
+                                        />
+                                      </label>
+                                    </div>
+                                    <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                                      <button
+                                        onClick={() => sendCustomQuote(r.id)}
+                                        disabled={customSavingId === r.id}
+                                        style={{ padding: "6px 14px", borderRadius: 6, background: "#2f2117", color: "#f7f0e7", border: "none", cursor: "pointer", fontWeight: 700 }}
+                                      >
+                                        {customSavingId === r.id ? "…" : r.status === "QUOTED" ? "Posodobi ponudbo" : "Pošlji ponudbo"}
+                                      </button>
+                                      <button
+                                        onClick={() => rejectCustom(r.id)}
+                                        disabled={customSavingId === r.id}
+                                        style={{ padding: "6px 14px", borderRadius: 6, background: "#f0e0e0", color: "#8b2020", border: "none", cursor: "pointer", fontWeight: 700 }}
+                                      >
+                                        Zavrni
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div style={{ marginTop: 12 }}>
+                                  <label style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.8rem", fontWeight: 600 }}>
+                                    Interne opombe
+                                    <textarea
+                                      value={notesRaw}
+                                      onChange={(e) => setCustomAdminNotes((p) => ({ ...p, [r.id]: e.target.value }))}
+                                      rows={2}
+                                      style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #c8a882", resize: "vertical" }}
+                                    />
+                                  </label>
+                                  <button
+                                    onClick={() => saveCustomNotes(r.id)}
+                                    disabled={customSavingId === r.id}
+                                    style={{ marginTop: 6, padding: "4px 12px", borderRadius: 6, background: "#c8a882", border: "none", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}
+                                  >
+                                    Shrani opombe
+                                  </button>
+                                </div>
+
+                                <div style={{ marginTop: 10, fontSize: "0.75rem", color: "#999" }}>ID: {r.id}</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 

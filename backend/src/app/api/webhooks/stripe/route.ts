@@ -61,8 +61,34 @@ export async function POST(req: Request) {
     case "checkout.session.completed": {
       const session = event.data.object;
       const orderId = (session.metadata?.orderId as string | undefined) ?? null;
+      const customOrderId = (session.metadata?.customOrderId as string | undefined) ?? null;
       const paymentIntent =
         typeof session.payment_intent === "string" ? session.payment_intent : null;
+
+      if (customOrderId) {
+        try {
+          await prisma.customOrderRequest.updateMany({
+            where: { id: customOrderId },
+            data: { status: "PAID", paidAt: new Date() },
+          });
+          await prisma.payment.updateMany({
+            where: { stripeSessionId: session.id },
+            data: {
+              status: "SUCCEEDED",
+              stripeCustomerId:
+                typeof session.customer === "string" ? session.customer : null,
+              stripePaymentIntentId: paymentIntent,
+            },
+          });
+        } catch (err) {
+          console.error("[webhook] custom-order update failed:", err);
+          return NextResponse.json(
+            { error: "Database is unavailable" },
+            { status: 503 },
+          );
+        }
+        break;
+      }
 
       if (!orderId) break;
 
@@ -135,6 +161,25 @@ export async function POST(req: Request) {
     case "checkout.session.expired": {
       const session = event.data.object;
       const orderId = (session.metadata?.orderId as string | undefined) ?? null;
+      const customOrderId = (session.metadata?.customOrderId as string | undefined) ?? null;
+      if (customOrderId) {
+        try {
+          await prisma.customOrderRequest.updateMany({
+            where: { id: customOrderId, status: "ACCEPTED" },
+            data: { status: "QUOTED" },
+          });
+          await prisma.payment.updateMany({
+            where: { stripeSessionId: session.id },
+            data: { status: "FAILED" },
+          });
+        } catch {
+          return NextResponse.json(
+            { error: "Database is unavailable" },
+            { status: 503 },
+          );
+        }
+        break;
+      }
       if (!orderId) break;
       try {
         await prisma.order.updateMany({

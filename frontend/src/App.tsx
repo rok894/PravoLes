@@ -13,6 +13,7 @@ import { fetchJson, BACKEND_URL, getSessionId } from "./api";
 import { useToast } from "./ToastContext";
 import { useAuth } from "./AuthContext";
 import AdminPanel from "./components/AdminPanel";
+import CustomOrderSection from "./components/CustomOrderSection";
 
 type Highlight = { title: string; text: string };
 type AboutPoint = { title: string; text: string };
@@ -157,6 +158,7 @@ function App() {
   const navLinks = [
     { href: "#vsebina", label: t("nav.vsebina") },
     { href: "#products", label: t("nav.products") },
+    { href: "#custom-orders", label: t("nav.customOrders") },
     { href: "#o-nas", label: t("nav.about") },
     { href: "#galerija", label: t("nav.gallery") },
     { href: "#kontakt", label: t("nav.contact") },
@@ -340,6 +342,8 @@ function App() {
         </section>
 
         <ProductShowcase />
+
+        <CustomOrderSection />
 
         <section className="panel panel--accent" id="kontakt">
           <div className="section-heading">
