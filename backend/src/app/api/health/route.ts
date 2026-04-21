@@ -26,9 +26,14 @@ export async function GET() {
     // Lightweight connectivity check.
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({ ok: true, db: { ok: true } });
-  } catch {
+  } catch (err) {
+    const debug = process.env.HEALTH_DEBUG === "true";
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { ok: false, db: { ok: false, error: "Database is unavailable" } },
+      {
+        ok: false,
+        db: { ok: false, error: "Database is unavailable", ...(debug ? { detail: message } : {}) },
+      },
       { status: 503 },
     );
   }
