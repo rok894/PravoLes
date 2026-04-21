@@ -89,9 +89,9 @@ export async function POST(req: Request) {
   const increment = body.data.qty ?? 1;
 
   try {
-    const existing = await prisma.cartItem.findUnique({
-      where: { cartId_productId_variantId: { cartId, productId, variantId } },
-      select: { qty: true },
+    const existing = await prisma.cartItem.findFirst({
+      where: { cartId, productId, variantId },
+      select: { id: true, qty: true },
     });
     const newQty = (existing?.qty ?? 0) + increment;
 
@@ -102,11 +102,16 @@ export async function POST(req: Request) {
       );
     }
 
-    await prisma.cartItem.upsert({
-      where: { cartId_productId_variantId: { cartId, productId, variantId } },
-      create: { cartId, productId, variantId, qty: increment },
-      update: { qty: newQty },
-    });
+    if (existing) {
+      await prisma.cartItem.update({
+        where: { id: existing.id },
+        data: { qty: newQty },
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: { cartId, productId, variantId, qty: increment },
+      });
+    }
   } catch {
     return NextResponse.json(
       { error: "Database is unavailable" },
