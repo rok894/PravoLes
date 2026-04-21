@@ -1,11 +1,8 @@
-import crypto from "crypto";
-import path from "path";
-import { promises as fs } from "fs";
-
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentUser } from "@/lib/auth";
+import { uploadCustomOrderImage } from "@/lib/blobStorage";
 import { corsPreflight, withCors } from "@/lib/cors";
 import getPrisma from "@/lib/prisma";
 import { checkRateLimitDetailed, getClientIp } from "@/lib/rateLimit";
@@ -160,43 +157,20 @@ export async function POST(req: Request) {
     );
   }
 
-  if (images.length > 0) {
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "custom-orders", created.id);
+  for (const file of images) {
+    const uploaded = await uploadCustomOrderImage(created.id, file);
+    if (!uploaded) continue;
     try {
-      await fs.mkdir(uploadsDir, { recursive: true });
+      await prisma.customOrderImage.create({
+        data: {
+          requestId: created.id,
+          path: uploaded.path,
+          mimeType: file.type,
+          sizeBytes: file.size,
+        },
+      });
     } catch {
-      return withCors(
-        NextResponse.json({ error: "Storage is unavailable" }, { status: 503 }),
-        origin,
-      );
-    }
-
-    for (const file of images) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const ext = (file.type.split("/")[1] ?? "bin").replace(/[^a-z0-9]/gi, "").slice(0, 10) || "bin";
-      const fileName = `${crypto.randomBytes(10).toString("hex")}.${ext}`;
-      const diskPath = path.join(uploadsDir, fileName);
-      try {
-        await fs.writeFile(diskPath, buffer);
-      } catch {
-        continue;
-      }
-      try {
-        await prisma.customOrderImage.create({
-          data: {
-            requestId: created.id,
-            path: `/uploads/custom-orders/${created.id}/${fileName}`,
-            mimeType: file.type,
-            sizeBytes: file.size,
-          },
-        });
-      } catch {
-        try {
-          await fs.unlink(diskPath);
-        } catch {
-          // ignore
-        }
-      }
+      // ignore per-image failures; the request itself is saved
     }
   }
 

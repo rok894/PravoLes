@@ -10,9 +10,11 @@ const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const CSRF_EXEMPT_PREFIXES = ["/api/webhooks/", "/api/visits"];
 
 function corsAllowOrigin(requestOrigin: string | null) {
-  const configured = process.env.FRONTEND_ORIGIN ?? "http://localhost:5173";
-  if (!requestOrigin) return configured;
-  return requestOrigin === configured ? requestOrigin : configured;
+  const raw = process.env.FRONTEND_ORIGIN ?? "http://localhost:5173";
+  const configured = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  const fallback = configured[0] ?? "http://localhost:5173";
+  if (!requestOrigin) return fallback;
+  return configured.includes(requestOrigin) ? requestOrigin : fallback;
 }
 
 function csrfDenied(req: NextRequest) {

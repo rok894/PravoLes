@@ -11,7 +11,8 @@ function getPrisma() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("Missing DATABASE_URL");
 
-  const adapter = new PrismaLibSql({ url });
+  const authToken = process.env.DATABASE_AUTH_TOKEN;
+  const adapter = new PrismaLibSql(authToken ? { url, authToken } : { url });
   const client = new PrismaClient({ adapter });
 
   if (process.env.NODE_ENV !== "production") {

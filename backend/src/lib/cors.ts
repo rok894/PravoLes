@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 
+function getConfiguredOrigins() {
+  const raw = process.env.FRONTEND_ORIGIN ?? "http://localhost:5173";
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function getAllowedOrigin(requestOrigin: string | null) {
-  const configured = process.env.FRONTEND_ORIGIN ?? "http://localhost:5173";
-  if (!requestOrigin) return configured;
+  const configured = getConfiguredOrigins();
+  const fallback = configured[0] ?? "http://localhost:5173";
+  if (!requestOrigin) return fallback;
   // Allow exact match only to avoid reflecting arbitrary origins.
-  return requestOrigin === configured ? requestOrigin : configured;
+  return configured.includes(requestOrigin) ? requestOrigin : fallback;
 }
 
 function withCors(

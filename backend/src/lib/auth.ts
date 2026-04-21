@@ -4,10 +4,14 @@ import { cookies } from "next/headers";
 import getPrisma from "@/lib/prisma";
 
 const IS_PROD = process.env.NODE_ENV === "production";
+const CROSS_SITE = process.env.CROSS_SITE_COOKIES === "true";
 
-// __Host- prefix in production locks the cookie to the exact host, requires Secure, path=/ and no Domain.
-const SESSION_COOKIE = IS_PROD ? "__Host-pravoles_session" : "pravoles_session";
+// __Host- prefix locks the cookie to the exact host — use it only when frontend and backend share the origin.
+// When cross-site (separate Vercel projects), we must use SameSite=None + Secure without the __Host- prefix.
+const SESSION_COOKIE = IS_PROD && !CROSS_SITE ? "__Host-pravoles_session" : "pravoles_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+const COOKIE_SAME_SITE: "lax" | "none" = CROSS_SITE ? "none" : "lax";
+const COOKIE_SECURE = IS_PROD || CROSS_SITE;
 
 function makeSessionToken() {
   return crypto.randomBytes(32).toString("hex");
@@ -21,8 +25,8 @@ async function setSessionCookie(token: string) {
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: IS_PROD,
+    sameSite: COOKIE_SAME_SITE,
+    secure: COOKIE_SECURE,
     path: "/",
     maxAge: SESSION_TTL_MS / 1000,
   });
@@ -32,8 +36,8 @@ async function clearSessionCookie() {
   const store = await cookies();
   store.set(SESSION_COOKIE, "", {
     httpOnly: true,
-    sameSite: "lax",
-    secure: IS_PROD,
+    sameSite: COOKIE_SAME_SITE,
+    secure: COOKIE_SECURE,
     path: "/",
     maxAge: 0,
   });

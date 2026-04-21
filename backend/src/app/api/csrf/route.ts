@@ -2,7 +2,13 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { corsPreflight, withCors } from "@/lib/cors";
-import { CSRF_COOKIE, CSRF_TTL_SECONDS, makeCsrfToken } from "@/lib/csrf";
+import {
+  CSRF_COOKIE,
+  CSRF_SAME_SITE,
+  CSRF_SECURE,
+  CSRF_TTL_SECONDS,
+  makeCsrfToken,
+} from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +25,8 @@ export async function GET(req: Request) {
     token = makeCsrfToken();
     store.set(CSRF_COOKIE, token, {
       httpOnly: false,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: CSRF_SAME_SITE,
+      secure: CSRF_SECURE,
       path: "/",
       maxAge: CSRF_TTL_SECONDS,
     });
