@@ -27,12 +27,19 @@ export async function GET() {
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({ ok: true, db: { ok: true } });
   } catch (err) {
-    const debug = process.env.HEALTH_DEBUG === "true";
     const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : null;
     return NextResponse.json(
       {
         ok: false,
-        db: { ok: false, error: "Database is unavailable", ...(debug ? { detail: message } : {}) },
+        db: { ok: false, error: "Database is unavailable" },
+        _debug: {
+          message,
+          stack: stack?.split("\n").slice(0, 5),
+          hasUrl: Boolean(process.env.DATABASE_URL),
+          hasToken: Boolean(process.env.DATABASE_AUTH_TOKEN),
+          urlScheme: process.env.DATABASE_URL?.split(":")[0],
+        },
       },
       { status: 503 },
     );
